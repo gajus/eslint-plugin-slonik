@@ -74,13 +74,11 @@ export type WorkerResult = GenerateResult;
 
 function workerHandler(params: CheckSQLWorkerParams): TE.TaskEither<WorkerError, WorkerResult> {
   const strategy = getConnectionStrategyByRuleOptionConnection(params);
-  console.log("[worker] Strategy:", JSON.stringify(strategy, null, 2));
 
   const connectionPayload = match(strategy)
-    .with({ type: "databaseUrl" }, ({ databaseUrl }) => {
-      console.log("[worker] Using databaseUrl strategy with URL:", databaseUrl);
-      return TE.right(connections.getOrCreate(databaseUrl));
-    })
+    .with({ type: "databaseUrl" }, ({ databaseUrl }) =>
+      TE.right(connections.getOrCreate(databaseUrl)),
+    )
     .with({ type: "migrations" }, ({ migrationsDir, databaseName, connectionUrl }) => {
       const { connectionOptions, databaseUrl } = getMigrationDatabaseMetadata({
         connectionUrl,

@@ -63,6 +63,6 @@ jobs:
       - run: pnpm run test:vitest
         timeout-minutes: 3
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
       - run: pnpm run build
     timeout-minutes: 10

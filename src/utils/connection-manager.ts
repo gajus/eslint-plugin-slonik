@@ -33,7 +33,6 @@ function getOrCreateConnection(
       () => {
         // Parse URL to ensure credentials are extracted, not inferred from env
         const config = parseConnection(databaseUrl);
-        console.log("[connection-manager] Creating connection with config:", config);
         const sql = postgres({
           host: config.host,
           port: config.port,

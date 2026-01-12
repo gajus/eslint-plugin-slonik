@@ -62,7 +62,7 @@
     "lint:eslint!": "eslint src --fix",
     "lint:knip": "knip --exclude exports,types",
     "lint:tsc": "tsc -b",
-    "test:vitest": "vitest run --pool=forks --hideSkippedTests=true"
+    "test:vitest": "vitest run --pool=forks --hideSkippedTests=true --reporter=verbose"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
