@@ -535,6 +535,17 @@ export function mapTemplateLiteralToQueryText(
       continue;
     }
 
+    // Check if the expression is a Slonik SQL token type (nested query/fragment)
+    // These represent dynamic SQL that cannot be analyzed statically, so skip validation
+    const tsNode = parser.esTreeNodeToTSNodeMap.get(expression);
+    if (tsNode) {
+      const expressionType = checker.getTypeAtLocation(tsNode);
+      const expressionTypeStr = checker.typeToString(expressionType);
+      if (isSlonikSqlTokenType(expressionTypeStr)) {
+        return E.right(null);
+      }
+    }
+
     const pgType = pipe(mapExpressionToTsTypeString({ expression, parser, checker }), (params) =>
       getPgTypeFromTsType({ ...params, checker, options }),
     );

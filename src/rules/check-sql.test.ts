@@ -2350,4 +2350,40 @@ RuleTester.describe("check-sql", () => {
     ],
     invalid: [],
   });
+
+  ruleTester.run("nested sql queries", rules["check-sql"], {
+    valid: [
+      {
+        name: "nested QuerySqlToken should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          import { QuerySqlToken } from 'slonik';
+          function query(subquery: QuerySqlToken) {
+            sql\`SELECT * FROM (\${subquery}) AS t\`
+          }
+        `,
+      },
+      {
+        name: "nested FragmentSqlToken should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          import { FragmentSqlToken } from 'slonik';
+          function query(condition: FragmentSqlToken) {
+            sql\`SELECT * FROM caregiver WHERE \${condition}\`
+          }
+        `,
+      },
+      {
+        name: "nested SqlSqlToken should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          import { SqlSqlToken } from 'slonik';
+          function query(fragment: SqlSqlToken) {
+            sql\`SELECT * FROM caregiver WHERE \${fragment}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
 });
