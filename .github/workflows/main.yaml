@@ -1,0 +1,54 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  release:
+    environment: release
+    name: Release
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: setup repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install
+      - run: pnpm run lint:eslint
+      - run: pnpm run lint:tsc
+      - run: pnpm run lint:cspell
+      - run: pnpm run lint:knip
+      - run: pnpm run test:vitest
+        env:
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGHOST: localhost
+          PGDATABASE: postgres
+      - run: pnpm run build
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release

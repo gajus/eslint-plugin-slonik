@@ -1,0 +1,37 @@
+---
+globs: *.test.ts
+alwaysApply: false
+---
+# Testing Rules
+
+When running tests in this project, you must follow these steps:
+
+1. **Ensure PostgreSQL is running**: Tests require a PostgreSQL database.
+   ```bash
+   docker run -d --name safeql-test-postgres -p 5432:5432 \
+     -e POSTGRES_USER=postgres \
+     -e POSTGRES_PASSWORD=postgres \
+     -e POSTGRES_DB=postgres \
+     postgres:17
+   ```
+
+2. **Set environment variables** and run tests:
+   ```bash
+   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm run test:vitest
+   ```
+
+3. **Run a specific test file**:
+   ```bash
+   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm vitest run src/rules/check-sql.test.ts
+   ```
+
+4. **Run a specific test by name**:
+   ```bash
+   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm vitest run src/rules/check-sql.test.ts -t "my test name"
+   ```
+
+## Guidelines
+
+- Always ensure PostgreSQL is running before running tests
+- Use the `run` command for a single execution
+- Use the `-t` flag to isolate specific tests

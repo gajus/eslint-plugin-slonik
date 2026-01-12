@@ -1,0 +1,103 @@
+{
+  "name": "eslint-plugin-slonik",
+  "version": "4.1.0",
+  "description": "Provides compile-time SQL query validation by checking your raw SQL strings against your actual database schema, catching errors before runtime.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gajus/eslint-plugin-slonik.git"
+  },
+  "homepage": "https://github.com/gajus/eslint-plugin-slonik",
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "slonik",
+    "postgresql",
+    "postgres",
+    "sql",
+    "typescript",
+    "type-safety",
+    "validation"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "main": "dist/index.cjs",
+  "typesVersions": {
+    "*": {
+      "config": [
+        "./dist/config.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts",
+        "default": "./dist/index.d.ts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./config": {
+      "types": {
+        "import": "./dist/config.d.mts",
+        "require": "./dist/config.d.cts",
+        "default": "./dist/config.d.ts"
+      },
+      "import": "./dist/config.mjs",
+      "require": "./dist/config.cjs"
+    }
+  },
+  "scripts": {
+    "build": "unbuild",
+    "clean": "rm -rf dist",
+    "dev": "unbuild --stub",
+    "lint:cspell": "cspell --no-progress .",
+    "lint:eslint": "eslint src",
+    "lint:eslint!": "eslint src --fix",
+    "lint:knip": "knip --exclude exports,types",
+    "lint:tsc": "tsc -b",
+    "test:vitest": "vitest --pool=forks --hideSkippedTests=true"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@ts-safeql/generate": "^4.1.0",
+    "@ts-safeql/shared": "^4.1.0",
+    "@ts-safeql/sql-ast": "^4.1.0",
+    "@types/node": "^22.13.13",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@typescript-eslint/rule-tester": "^8.28.0",
+    "cspell": "^9.6.0",
+    "eslint": "^9.23.0",
+    "knip": "^5.80.2",
+    "libpg-query": "^17.5.2",
+    "semantic-release": "^25.0.2",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.53.0",
+    "unbuild": "^3.5.0",
+    "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.53.0",
+    "chokidar": "^4.0.3",
+    "fp-ts": "^2.16.9",
+    "pg-connection-string": "2.7.0",
+    "postgres": "^3.4.5",
+    "quansync": "^0.2.10",
+    "synckit": "^0.10.3",
+    "ts-pattern": "^5.6.2",
+    "tsx": "^4.19.3",
+    "zod": "^4.1.12"
+  },
+  "peerDependencies": {
+    "libpg-query": ">=13.2.5"
+  },
+  "packageManager": "pnpm@10.11.0"
+}

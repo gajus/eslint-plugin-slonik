@@ -1,0 +1,10 @@
+dist
+node_modules
+tsconfig.tsbuildinfo
+*.log
+.*
+!.github
+!.gitignore
+!.prettierrc.json
+!.prettierignore
+!.cursor
