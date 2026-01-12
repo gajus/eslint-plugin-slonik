@@ -1,24 +1,11 @@
-import pgConnectionString from "pg-connection-string";
 import postgres, { Sql } from "postgres";
+import { mapConnectionOptionsToString, parseConnection } from "../utils/pg.utils";
+
+const DEFAULT_DATABASE_URL = "postgres://postgres:postgres@localhost:5432/postgres";
 
 function getPostgresConfig() {
-  return {
-    user: process.env.PGUSER ?? "postgres",
-    password: process.env.PGPASSWORD ?? "postgres",
-    host: process.env.PGHOST ?? "localhost",
-    port: process.env.PGPORT ?? "5432",
-  };
-}
-
-function getDefaultPostgresUrl(): string {
-  const { user, password, host, port } = getPostgresConfig();
-  const database = process.env.PGDATABASE ?? "postgres";
-  return `postgres://${user}:${password}@${host}:${port}/${database}`;
-}
-
-export function getTestDatabaseUrl(databaseName: string): string {
-  const { user, password, host, port } = getPostgresConfig();
-  return `postgres://${user}:${password}@${host}:${port}/${databaseName}`;
+  const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
+  return parseConnection(databaseUrl);
 }
 
 export function generateTestDatabaseName(): string {
@@ -27,19 +14,17 @@ export function generateTestDatabaseName(): string {
 
 export async function setupTestDatabase(params: {
   databaseName: string;
-  postgresUrl?: string;
 }): Promise<{ sql: Sql; databaseUrl: string; drop: () => Promise<void> }> {
-  const { databaseName, postgresUrl = getDefaultPostgresUrl() } = params;
-
-  const config = pgConnectionString.parse(postgresUrl);
+  const { databaseName } = params;
+  const config = getPostgresConfig();
   
   // Connect to default database to create test database
   const adminSql = postgres({
-    host: config.host ?? "localhost",
-    port: config.port ? parseInt(config.port, 10) : 5432,
-    user: config.user ?? "postgres",
-    password: config.password ?? "postgres",
-    database: config.database ?? "postgres",
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: config.database,
   });
 
   await adminSql.unsafe(`DROP DATABASE IF EXISTS "${databaseName}"`);
@@ -47,17 +32,23 @@ export async function setupTestDatabase(params: {
   await adminSql.end();
 
   // Connect to test database
-  const databaseUrl = `postgres://${config.user ?? "postgres"}:${config.password ?? "postgres"}@${config.host ?? "localhost"}:${config.port ?? 5432}/${databaseName}`;
-  const sql = postgres(databaseUrl);
+  const databaseUrl = mapConnectionOptionsToString({ ...config, database: databaseName });
+  const sql = postgres({
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: databaseName,
+  });
 
   const drop = async () => {
     await sql.end();
     const dropSql = postgres({
-      host: config.host ?? "localhost",
-      port: config.port ? parseInt(config.port, 10) : 5432,
-      user: config.user ?? "postgres",
-      password: config.password ?? "postgres",
-      database: config.database ?? "postgres",
+      host: config.host,
+      port: config.port,
+      user: config.user,
+      password: config.password,
+      database: config.database,
     });
     await dropSql.unsafe(`DROP DATABASE IF EXISTS "${databaseName}"`);
     await dropSql.end();

@@ -1,4 +1,4 @@
-import { generateTestDatabaseName, getTestDatabaseUrl, setupTestDatabase } from "../test-utils";
+import { generateTestDatabaseName, setupTestDatabase } from "../test-utils";
 import { InvalidTestCase, RuleTester } from "@typescript-eslint/rule-tester";
 
 import { normalizeIndent } from "@ts-safeql/shared";
@@ -8,6 +8,7 @@ import { Sql } from "postgres";
 import { afterAll, beforeAll, describe, it } from "vitest";
 import rules from ".";
 import { RuleOptionConnection, RuleOptions } from "./RuleOptions";
+import { mapConnectionOptionsToString, parseConnection } from "../utils/pg.utils";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -174,7 +175,9 @@ RuleTester.describe("check-sql", () => {
     await dropFn();
   });
 
-  const databaseUrl = getTestDatabaseUrl(databaseName);
+  // Build database URL by parsing DATABASE_URL and replacing the database name
+  const baseConfig = parseConnection(process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/postgres");
+  const databaseUrl = mapConnectionOptionsToString({ ...baseConfig, database: databaseName });
 
   const connections = {
     base: {

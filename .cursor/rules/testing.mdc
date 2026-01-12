@@ -15,19 +15,19 @@ When running tests in this project, you must follow these steps:
      postgres:17
    ```
 
-2. **Set environment variables** and run tests:
+2. **Run tests** with DATABASE_URL:
    ```bash
-   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm run test:vitest
+   DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm run test:vitest
    ```
 
 3. **Run a specific test file**:
    ```bash
-   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm vitest run src/rules/check-sql.test.ts
+   DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm vitest run src/rules/check-sql.test.ts
    ```
 
 4. **Run a specific test by name**:
    ```bash
-   PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGDATABASE=postgres pnpm vitest run src/rules/check-sql.test.ts -t "my test name"
+   DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm vitest run src/rules/check-sql.test.ts -t "my test name"
    ```
 
 ## Guidelines

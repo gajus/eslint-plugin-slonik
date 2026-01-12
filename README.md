@@ -299,14 +299,8 @@ docker run -d --name postgres -p 5432:5432 \
 ### Running Tests
 
 ```bash
-# Set PostgreSQL environment variables
-export PGUSER=postgres
-export PGPASSWORD=postgres
-export PGHOST=localhost
-export PGDATABASE=postgres
-
-# Run tests
-pnpm run test:vitest
+# Run tests with DATABASE_URL
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm run test:vitest
 ```
 
 ### Linting

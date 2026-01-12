@@ -31,7 +31,16 @@ function getOrCreateConnection(
     O.fromNullable(connectionMap.get(databaseUrl)),
     O.foldW(
       () => {
-        const sql = postgres(databaseUrl, options);
+        // Parse URL to ensure credentials are extracted, not inferred from env
+        const url = new URL(databaseUrl);
+        const sql = postgres({
+          host: url.hostname,
+          port: parseInt(url.port || "5432", 10),
+          user: url.username,
+          password: url.password,
+          database: url.pathname.slice(1),
+          ...options,
+        });
         connectionMap.set(databaseUrl, sql);
         return { sql, databaseUrl, isFirst: true };
       },
