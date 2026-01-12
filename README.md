@@ -71,10 +71,10 @@ export default [
 | SQL Tag | Support | Behavior |
 |---------|---------|----------|
 | `sql.array([1,2], 'int4')` | ✅ Full | Extracts type → `$1::int4[]` |
-| `sql.array([1,2], sql.fragment\`int[]\`)` | ✅ Graceful | Falls back to `$1` |
+| `` sql.array([1,2], sql.fragment`int[]`) `` | ✅ Graceful | Falls back to `$1` |
 | `sql.unnest([[...]], ['int4','text'])` | ✅ Full | Extracts types → `unnest($1::int4[], $2::text[])` |
 | `sql.identifier(['schema','table'])` | ✅ Full | Embeds → `"schema"."table"` |
-| `sql.fragment\`...\`` | ✅ Full | Embeds SQL content directly |
+| `` sql.fragment`...` `` | ✅ Full | Embeds SQL content directly |
 | `sql.join([...], glue)` | ✅ Skip | Skipped (runtime content) |
 | `sql.binary(buffer)` | ✅ Skip | Skipped |
 | `sql.date(date)` | ✅ Skip | Skipped |
