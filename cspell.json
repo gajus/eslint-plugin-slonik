@@ -34,6 +34,7 @@
     "PGDATABASE",
     "PGHOST",
     "PGPASSWORD",
+    "PGPORT",
     "PGUSER",
     "pgvector",
     "postgres",
