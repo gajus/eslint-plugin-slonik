@@ -25,7 +25,7 @@ yarn add eslint-plugin-slonik --dev
 ### Peer Dependencies
 
 ```bash
-npm install @typescript-eslint/utils libpg-query --save-dev
+npm install libpg-query --save-dev
 ```
 
 ## Configuration
