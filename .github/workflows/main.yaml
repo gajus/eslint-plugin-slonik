@@ -42,6 +42,7 @@ jobs:
       - run: pnpm run lint:cspell
       - run: pnpm run lint:knip
       - run: pnpm run test:vitest
+        timeout-minutes: 2
         env:
           PGUSER: postgres
           PGPASSWORD: postgres
