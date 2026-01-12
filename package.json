@@ -2,7 +2,6 @@
   "name": "eslint-plugin-slonik",
   "version": "1.0.0",
   "description": "Provides compile-time SQL query validation by checking your raw SQL strings against your actual database schema, catching errors before runtime.",
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/gajus/eslint-plugin-slonik.git"
