@@ -280,7 +280,7 @@ This plugin is specifically designed for Slonik and includes:
 
 - Node.js 24+
 - pnpm 10+
-- PostgreSQL 18
+- PostgreSQL 17
 
 ### Setup
 
@@ -293,7 +293,7 @@ docker run -d --name postgres -p 5432:5432 \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=postgres \
-  postgres:18
+  postgres:17
 ```
 
 ### Running Tests
