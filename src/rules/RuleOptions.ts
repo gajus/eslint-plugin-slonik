@@ -141,15 +141,7 @@ export const zConfig = z.object({
 
 export type Config = z.infer<typeof zConfig>;
 
-export const UserConfigFile = z.object({
-  useConfigFile: z.boolean(),
-});
-export type UserConfigFile = z.infer<typeof UserConfigFile>;
-
-export const Options = z.union([zConfig, UserConfigFile]);
-export type Options = z.infer<typeof Options>;
-
-export const RuleOptions = z.array(Options).min(1).max(1);
+export const RuleOptions = z.array(zConfig).min(1).max(1);
 export type RuleOptions = z.infer<typeof RuleOptions>;
 
 export type InferLiteralsOption = NonNullable<z.infer<typeof zBaseSchema>["inferLiterals"]>;

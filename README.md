@@ -66,49 +66,6 @@ export default [
 ];
 ```
 
-### Using a Config File (slonik.config.ts)
-
-Alternatively, use a separate config file:
-
-**eslint.config.js:**
-```js
-import slonik from "eslint-plugin-slonik/config";
-
-export default [
-  slonik.configs.useConfigFile,
-];
-```
-
-**slonik.config.ts:**
-```ts
-import { defineConfig } from "eslint-plugin-slonik";
-
-export default defineConfig({
-  connections: {
-    databaseUrl: process.env.DATABASE_URL,
-    overrides: {
-      types: {
-        date: "DateSqlToken",
-        timestamp: "TimestampSqlToken",
-        interval: "IntervalSqlToken",
-        json: "JsonSqlToken",
-        jsonb: "JsonBinarySqlToken",
-        uuid: "UuidSqlToken",
-        "int4[]": 'ArraySqlToken<"int4">',
-        "text[]": 'ArraySqlToken<"text">',
-        "uuid[]": 'ArraySqlToken<"uuid">',
-      },
-    },
-    targets: [
-      {
-        tag: "sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)",
-        skipTypeAnnotations: true,
-      },
-    ],
-  },
-});
-```
-
 ## Slonik SQL Tag Support
 
 | SQL Tag | Support | Behavior |
