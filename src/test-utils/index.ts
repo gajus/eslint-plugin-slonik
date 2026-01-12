@@ -5,7 +5,11 @@ const DEFAULT_DATABASE_URL = "postgres://postgres:postgres@localhost:5432/postgr
 
 function getPostgresConfig() {
   const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
-  return parseConnection(databaseUrl);
+  console.log("[test-utils] DATABASE_URL env:", process.env.DATABASE_URL);
+  console.log("[test-utils] Using databaseUrl:", databaseUrl);
+  const config = parseConnection(databaseUrl);
+  console.log("[test-utils] Parsed config:", config);
+  return config;
 }
 
 export function generateTestDatabaseName(): string {

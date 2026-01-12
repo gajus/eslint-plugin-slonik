@@ -32,13 +32,14 @@ function getOrCreateConnection(
     O.foldW(
       () => {
         // Parse URL to ensure credentials are extracted, not inferred from env
-        const url = new URL(databaseUrl);
+        const config = parseConnection(databaseUrl);
+        console.log("[connection-manager] Creating connection with config:", config);
         const sql = postgres({
-          host: url.hostname,
-          port: parseInt(url.port || "5432", 10),
-          user: url.username,
-          password: url.password,
-          database: url.pathname.slice(1),
+          host: config.host,
+          port: config.port,
+          user: config.user,
+          password: config.password,
+          database: config.database,
           ...options,
         });
         connectionMap.set(databaseUrl, sql);

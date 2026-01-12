@@ -176,8 +176,11 @@ RuleTester.describe("check-sql", () => {
   });
 
   // Build database URL by parsing DATABASE_URL and replacing the database name
+  console.log("[check-sql.test] DATABASE_URL env:", process.env.DATABASE_URL);
   const baseConfig = parseConnection(process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/postgres");
+  console.log("[check-sql.test] baseConfig:", baseConfig);
   const databaseUrl = mapConnectionOptionsToString({ ...baseConfig, database: databaseName });
+  console.log("[check-sql.test] databaseUrl for tests:", databaseUrl);
 
   const connections = {
     base: {
