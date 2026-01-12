@@ -2307,4 +2307,47 @@ RuleTester.describe("check-sql", () => {
       },
     ],
   });
+
+  ruleTester.run("sql.identifier", rules["check-sql"], {
+    valid: [
+      {
+        name: "static sql.identifier with literal array",
+        options: withConnection(connections.withTag),
+        code: `sql<{ id: number }>\`SELECT id FROM \${sql.identifier(['caregiver'])}\``,
+      },
+      {
+        name: "static sql.identifier with schema.table",
+        options: withConnection(connections.withTag),
+        code: `sql<{ id: number }>\`SELECT id FROM \${sql.identifier(['public', 'caregiver'])}\``,
+      },
+      {
+        name: "dynamic sql.identifier should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          function dropTable(table: string) {
+            sql.typeAlias('void')\`DROP TABLE \${sql.identifier([table])} CASCADE\`
+          }
+        `,
+      },
+      {
+        name: "dynamic sql.identifier with multiple parts should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          function selectFrom(schema: string, table: string) {
+            sql\`SELECT * FROM \${sql.identifier([schema, table])}\`
+          }
+        `,
+      },
+      {
+        name: "dynamic sql.identifier mixed with literal should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          function selectColumn(column: string) {
+            sql\`SELECT \${sql.identifier(['caregiver', column])} FROM caregiver\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
 });

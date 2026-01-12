@@ -177,6 +177,10 @@ function reportCheck(params: {
       ),
     ),
     E.bindW("result", ({ query }) => {
+      // If query is null, it means we should skip validation (e.g., dynamic sql.identifier)
+      if (query === null) {
+        return E.right(null);
+      }
       return generateSyncE({ query, connection, target, projectDir });
     }),
     E.fold(
@@ -210,6 +214,11 @@ function reportCheck(params: {
           .exhaustive();
       },
       ({ result, checker, parser }) => {
+        // If result is null, validation was skipped (e.g., dynamic sql.identifier)
+        if (result === null) {
+          return;
+        }
+
         const shouldSkipTypeAnnotations = target.skipTypeAnnotations === true;
 
         if (shouldSkipTypeAnnotations) {

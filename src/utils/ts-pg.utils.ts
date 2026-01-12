@@ -137,6 +137,29 @@ function getMemberExpressionObjectName(node: TSESTree.Expression): string | null
 }
 
 /**
+ * Check if an expression is a Slonik sql.identifier() call.
+ * Returns true if this is a sql.identifier() call (regardless of whether arguments are static or dynamic).
+ */
+function isSlonikIdentifierCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "identifier") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
  * Check if an expression is a Slonik sql.identifier() call and extract the identifier parts.
  * 
  * Slonik sql.identifier() syntax:
@@ -144,7 +167,7 @@ function getMemberExpressionObjectName(node: TSESTree.Expression): string | null
  *   sql.identifier(['schema', 'table'])     → "schema"."table"
  *   sql.identifier(['schema', 'table', 'column']) → "schema"."table"."column"
  * 
- * Returns the quoted identifier string or null if not a sql.identifier() call.
+ * Returns the quoted identifier string or null if not a sql.identifier() call or has dynamic arguments.
  */
 function extractSlonikIdentifier(expression: TSESTree.Expression): string | null {
   // Check if it's a call expression
@@ -411,6 +434,12 @@ export function mapTemplateLiteralToQueryText(
       });
 
       continue;
+    }
+
+    // If it's a sql.identifier() call but we couldn't extract static identifier parts,
+    // it means it has dynamic arguments - skip validation for the entire query
+    if (isSlonikIdentifierCall(expression)) {
+      return E.right(null);
     }
 
     // Check for Slonik sql.join() calls - skip validation as content is determined at runtime
