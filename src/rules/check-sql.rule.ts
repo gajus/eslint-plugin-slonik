@@ -167,15 +167,21 @@ function reportCheck(params: {
         ? E.left(new InvalidConfigError("Type checker is not available"))
         : E.right(parser.program.getTypeChecker());
     }),
-    E.bindW("query", ({ parser, checker }) =>
-      mapTemplateLiteralToQueryText(
-        tag.quasi,
-        parser,
-        checker,
-        params.connection,
-        params.context.sourceCode,
-      ),
-    ),
+    E.bindW("query", ({ parser, checker }) => {
+      try {
+        return mapTemplateLiteralToQueryText(
+          tag.quasi,
+          parser,
+          checker,
+          params.connection,
+          params.context.sourceCode,
+        );
+      } catch (error) {
+        console.error('[slonik/check-sql] DEBUG: Error in mapTemplateLiteralToQueryText:', error);
+        console.error('[slonik/check-sql] DEBUG: Query template:', context.sourceCode.getText(tag));
+        throw error;
+      }
+    }),
     E.bindW("result", ({ query }) => {
       // If query is null, it means we should skip validation (e.g., dynamic sql.identifier)
       if (query === null) {
@@ -415,12 +421,20 @@ function getTypeAnnotationState({
 
   const typeNode = typeParameter.params[0];
 
-  const expected = getResolvedTargetByTypeNode({
-    checker,
-    parser,
-    typeNode,
-    reservedTypes,
-  });
+  let expected;
+  try {
+    expected = getResolvedTargetByTypeNode({
+      checker,
+      parser,
+      typeNode,
+      reservedTypes,
+    });
+  } catch (error) {
+    console.error('[slonik/check-sql] DEBUG: Error in getResolvedTargetByTypeNode:', error);
+    console.error('[slonik/check-sql] DEBUG: typeNode:', typeNode);
+    console.error('[slonik/check-sql] DEBUG: typeNode.type:', typeNode?.type);
+    throw error;
+  }
 
   return getResolvedTargetsEquality({
     expected,

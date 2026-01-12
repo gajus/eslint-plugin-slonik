@@ -31,7 +31,18 @@ const PRIMITIVES = {
 export function getResolvedTargetByTypeNode(
   params: GetResolvedTargetByTypeNodeParams,
 ): ExpectedResolvedTarget {
-  const typeText = params.parser.esTreeNodeToTSNodeMap.get(params.typeNode).getText();
+  if (!params.typeNode) {
+    console.error('[slonik/check-sql] DEBUG: typeNode is undefined in getResolvedTargetByTypeNode');
+    throw new Error('typeNode is undefined');
+  }
+
+  const tsNode = params.parser.esTreeNodeToTSNodeMap.get(params.typeNode);
+  if (!tsNode) {
+    console.error('[slonik/check-sql] DEBUG: Could not map ESTree node to TS node. typeNode.type:', params.typeNode.type);
+    throw new Error(`Could not map ESTree node (type: ${params.typeNode.type}) to TS node`);
+  }
+
+  const typeText = tsNode.getText();
 
   if (isReservedType(typeText, params.reservedTypes)) {
     return { kind: "type", value: typeText };

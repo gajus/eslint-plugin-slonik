@@ -391,6 +391,16 @@ export function mapTemplateLiteralToQueryText(
     const position = $queryText.length;
     const expression = quasi.expressions[quasiIdx];
 
+    // Guard against undefined expression (should not happen with well-formed template literals)
+    if (!expression) {
+      console.error('[slonik/check-sql] DEBUG: expression is undefined at index', quasiIdx, {
+        quasiCount: quasi.quasis.length,
+        expressionCount: quasi.expressions.length,
+        queryTextSoFar: $queryText,
+      });
+      continue;
+    }
+
     // Check for Slonik sql.array() calls first - these have explicit type hints
     const slonikArrayType = extractSlonikArrayType(expression);
     if (slonikArrayType !== null) {
