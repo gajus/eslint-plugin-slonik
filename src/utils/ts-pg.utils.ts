@@ -444,24 +444,7 @@ export function mapTemplateLiteralToQueryText(
 
     // Check for Slonik sql.join() calls - skip validation as content is determined at runtime
     if (isSlonikJoinCall(expression)) {
-      const placeholder = `$${++$idx}`;
-      $queryText += placeholder;
-
-      sourcemaps.push({
-        original: {
-          start: expression.range[0] - quasi.range[0] - 2,
-          end: expression.range[1] - quasi.range[0],
-          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
-        },
-        generated: {
-          start: position,
-          end: position + placeholder.length,
-          text: placeholder,
-        },
-        offset: 0,
-      });
-
-      continue;
+      return E.right(null);
     }
 
     // Check for Slonik sql.unnest() calls - these have explicit column type hints

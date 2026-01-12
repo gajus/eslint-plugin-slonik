@@ -2386,4 +2386,29 @@ RuleTester.describe("check-sql", () => {
     ],
     invalid: [],
   });
+
+  ruleTester.run("sql.join", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.join should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          import { FragmentSqlToken } from 'slonik';
+          function query(conditions: FragmentSqlToken[]) {
+            sql\`SELECT * FROM caregiver WHERE \${sql.join(conditions, sql.fragment\` AND \`)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.join with map should skip validation",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(ids: number[]) {
+            sql\`SELECT * FROM caregiver WHERE id IN (\${sql.join(ids.map(id => sql.fragment\`\${id}\`), sql.fragment\`, \`)})\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
 });
