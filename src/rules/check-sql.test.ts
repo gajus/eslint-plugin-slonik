@@ -1,4 +1,4 @@
-import { generateTestDatabaseName, setupTestDatabase } from "../test-utils";
+import { generateTestDatabaseName, getTestDatabaseUrl, setupTestDatabase } from "../test-utils";
 import { InvalidTestCase, RuleTester } from "@typescript-eslint/rule-tester";
 
 import { normalizeIndent } from "@ts-safeql/shared";
@@ -161,7 +161,6 @@ RuleTester.describe("check-sql", () => {
   beforeAll(async () => {
     const testDatabase = await setupTestDatabase({
       databaseName: databaseName,
-      postgresUrl: "postgres://postgres:postgres@localhost:5432/postgres",
     });
 
     dropFn = testDatabase.drop;
@@ -175,49 +174,51 @@ RuleTester.describe("check-sql", () => {
     await dropFn();
   });
 
+  const databaseUrl = getTestDatabaseUrl(databaseName);
+
   const connections = {
     base: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ wrapper: "conn.query" }],
       keepAlive: false,
     },
     withSkipTypeAnnotations: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ wrapper: "conn.query", skipTypeAnnotations: true }],
       keepAlive: false,
     },
     withGlobWrapper: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ wrapper: "conn.+(query|queryOne|queryOneOrNone)" }],
       keepAlive: false,
     },
     withRegexWrapper: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ wrapper: { regex: "conn.(query|queryOne|queryOneOrNone)" } }],
       keepAlive: false,
     },
     withMaxDepthOf: (maxDepth: number) => ({
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ wrapper: "conn.query", maxDepth }],
       keepAlive: false,
     }),
     withTag: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ tag: "sql" }],
       keepAlive: false,
     },
     withMemberTag: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ tag: "Db.sql" }],
       keepAlive: false,
     },
     withGlobTag: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ tag: "+(conn1|conn2).sql" }],
       keepAlive: false,
     },
     withRegexTag: {
-      databaseUrl: `postgres://postgres:postgres@localhost:5432/${databaseName}`,
+      databaseUrl,
       targets: [{ tag: { regex: "(conn1|conn2).sql" } }],
       keepAlive: false,
     },

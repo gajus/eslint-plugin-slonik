@@ -1,6 +1,26 @@
 import pgConnectionString from "pg-connection-string";
 import postgres, { Sql } from "postgres";
 
+function getPostgresConfig() {
+  return {
+    user: process.env.PGUSER ?? "postgres",
+    password: process.env.PGPASSWORD ?? "postgres",
+    host: process.env.PGHOST ?? "localhost",
+    port: process.env.PGPORT ?? "5432",
+  };
+}
+
+function getDefaultPostgresUrl(): string {
+  const { user, password, host, port } = getPostgresConfig();
+  const database = process.env.PGDATABASE ?? "postgres";
+  return `postgres://${user}:${password}@${host}:${port}/${database}`;
+}
+
+export function getTestDatabaseUrl(databaseName: string): string {
+  const { user, password, host, port } = getPostgresConfig();
+  return `postgres://${user}:${password}@${host}:${port}/${databaseName}`;
+}
+
 export function generateTestDatabaseName(): string {
   return `test_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -9,7 +29,7 @@ export async function setupTestDatabase(params: {
   databaseName: string;
   postgresUrl?: string;
 }): Promise<{ sql: Sql; databaseUrl: string; drop: () => Promise<void> }> {
-  const { databaseName, postgresUrl = "postgres://postgres:postgres@localhost:5432/postgres" } = params;
+  const { databaseName, postgresUrl = getDefaultPostgresUrl() } = params;
 
   const config = pgConnectionString.parse(postgresUrl);
   
