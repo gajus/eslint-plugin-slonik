@@ -4,7 +4,6 @@
   "ignore": ["src/rules/ts-fixture/**", "src/utils/assertNever.ts"],
   "ignoreDependencies": [
     "@typescript-eslint/eslint-plugin",
-    "@typescript-eslint/typescript-estree",
     "libpg-query",
     "quansync",
     "@ts-safeql/sql-ast",
