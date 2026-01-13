@@ -3,7 +3,7 @@ import { AnyFn, createSyncFn } from "synckit";
 import { CheckSQLWorkerHandler } from "./check-sql.worker";
 import { fileURLToPath } from "node:url";
 
-export const distDir = fileURLToPath(new URL("../../dist", import.meta.url));
+export const distDir = fileURLToPath(new URL(".", import.meta.url));
 
 function defineWorker<T extends AnyFn<R>, R = unknown>(params: { name: string; timeout: number }) {
   return createSyncFn<T>(path.join(distDir, `./workers/${params.name}.worker.mjs`), {
