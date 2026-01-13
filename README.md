@@ -273,6 +273,18 @@ This plugin is specifically designed for Slonik and includes:
 4. **Identifier support** — Converts `sql.identifier()` to quoted identifiers
 5. **Graceful degradation** — Skips validation for runtime-dependent constructs instead of erroring
 
+## How It Works
+
+ESLint rules must be synchronous, but SQL validation requires async operations like database connections. This plugin solves this using [`synckit`](https://github.com/un-ts/synckit), which enables synchronous calls to async worker threads.
+
+The architecture:
+
+1. **Worker Thread** — Runs all async operations (database connections, migrations, type generation) in a separate thread
+2. **Synchronous Bridge** — Uses `synckit` to block the main thread until the worker completes, making async operations appear synchronous to ESLint
+3. **Connection Pooling** — Reuses database connections across lint runs for performance
+
+Under the hood, `synckit` uses Node.js Worker Threads with `Atomics.wait()` to block the main thread until the worker signals completion via `Atomics.notify()`.
+
 ## Development
 
 ### Prerequisites
