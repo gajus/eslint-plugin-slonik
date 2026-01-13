@@ -391,6 +391,34 @@ function isSlonikJsonbCall(expression: TSESTree.Expression): boolean {
 }
 
 /**
+ * Check if an expression is a Slonik sql.literalValue() call.
+ * 
+ * Slonik sql.literalValue() syntax:
+ *   sql.literalValue('some text')
+ *   sql.literalValue(123)
+ * 
+ * Returns true if this is a sql.literalValue() call.
+ */
+function isSlonikLiteralValueCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "literalValue") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
  * Result of extracting a Slonik sql.fragment expression.
  * Contains the SQL text and any nested expressions that need type checking.
  */
@@ -688,6 +716,28 @@ export function mapTemplateLiteralToQueryText(
     // Check for Slonik sql.jsonb() calls - these serialize an object to a PostgreSQL jsonb value
     if (isSlonikJsonbCall(expression)) {
       const placeholder = `$${++$idx}::jsonb`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
+    }
+
+    // Check for Slonik sql.literalValue() calls - these insert a value as a SQL literal
+    if (isSlonikLiteralValueCall(expression)) {
+      const placeholder = `$${++$idx}`;
       $queryText += placeholder;
 
       sourcemaps.push({

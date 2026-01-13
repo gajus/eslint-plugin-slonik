@@ -1465,3 +1465,121 @@ describe("Slonik sql.jsonb Detection", () => {
     });
   });
 });
+
+// Re-create the sql.literalValue detection logic for testing
+function isSlonikLiteralValueCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callExpr = expression as TSESTree.CallExpression;
+  const callee = callExpr.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  const memberExpr = callee as TSESTree.MemberExpression;
+
+  if (memberExpr.property.type !== "Identifier" ||
+      (memberExpr.property as TSESTree.Identifier).name !== "literalValue") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(memberExpr.object);
+  return objectName === "sql";
+}
+
+// Helper to create mock sql.literalValue() call expressions
+function createMockLiteralValueCallExpression(objectName: string): TSESTree.CallExpression {
+  return {
+    type: "CallExpression",
+    callee: {
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: objectName,
+        range: [0, 0],
+        loc: {} as any,
+      },
+      property: {
+        type: "Identifier",
+        name: "literalValue",
+        range: [0, 0],
+        loc: {} as any,
+      },
+      computed: false,
+      optional: false,
+      range: [0, 0],
+      loc: {} as any,
+    },
+    arguments: [
+      {
+        type: "Literal",
+        value: "test",
+        raw: "'test'",
+        range: [0, 0],
+        loc: {} as any,
+      } as TSESTree.Literal,
+    ],
+    optional: false,
+    range: [0, 0],
+    loc: {} as any,
+  } as unknown as TSESTree.CallExpression;
+}
+
+describe("Slonik sql.literalValue Detection", () => {
+  describe("isSlonikLiteralValueCall", () => {
+    it("should detect sql.literalValue() calls", () => {
+      const expr = createMockLiteralValueCallExpression("sql");
+      expect(isSlonikLiteralValueCall(expr)).toBe(true);
+    });
+
+    it("should return false for non-sql objects", () => {
+      const expr = createMockLiteralValueCallExpression("other");
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+
+    it("should return false for other sql methods", () => {
+      const expr = createMockCallExpression("sql", "array", "int4");
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.json()", () => {
+      const expr = createMockJsonCallExpression("sql");
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.jsonb()", () => {
+      const expr = createMockJsonbCallExpression("sql");
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-call expressions", () => {
+      const expr = {
+        type: "Identifier",
+        name: "foo",
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.Identifier;
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-member-expression callees", () => {
+      const expr = {
+        type: "CallExpression",
+        callee: {
+          type: "Identifier",
+          name: "literalValue",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        optional: false,
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.CallExpression;
+      expect(isSlonikLiteralValueCall(expr)).toBe(false);
+    });
+  });
+});

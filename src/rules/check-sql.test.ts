@@ -1947,6 +1947,39 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.literalValue", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.literalValue() with string in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(value: string) {
+            sql\`SELECT * FROM agency WHERE name = \${sql.literalValue(value)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.literalValue() with number",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(value: number) {
+            sql\`SELECT * FROM agency WHERE id = \${sql.literalValue(value)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.literalValue() in SELECT expression",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(value: string) {
+            sql\`SELECT \${sql.literalValue(value)} AS literal_col\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {
