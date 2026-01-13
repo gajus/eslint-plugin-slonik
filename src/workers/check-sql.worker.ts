@@ -116,7 +116,7 @@ function workerHandler(params: CheckSQLWorkerParams): TE.TaskEither<WorkerError,
         .with({ type: "databaseUrl" }, ({ databaseUrl }) =>
           E.right(connections.getOrCreate(databaseUrl, { connectionTimeout })),
         )
-        .with({ type: "migrations" }, ({ migrationsDir, databaseName, connectionUrl }) => {
+        .with({ type: "migrations" }, ({ databaseName, connectionUrl }) => {
           const { databaseUrl } = getMigrationDatabaseMetadata({
             connectionUrl,
             databaseName,
