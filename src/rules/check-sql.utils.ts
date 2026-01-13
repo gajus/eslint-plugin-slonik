@@ -13,7 +13,6 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { Sql } from "postgres";
-import { match } from "ts-pattern";
 import { z } from "zod";
 import { E, TE, pipe } from "../utils/fp-ts";
 import { mapConnectionOptionsToString, parseConnection } from "../utils/pg.utils";
