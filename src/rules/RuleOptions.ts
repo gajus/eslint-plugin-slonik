@@ -66,6 +66,12 @@ const zBaseSchema = z.object({
   keepAlive: z.boolean().optional(),
 
   /**
+   * Connection timeout in milliseconds. If the connection is not established within this time,
+   * an error will be thrown. Defaults to 5000 (5 seconds).
+   */
+  connectionTimeout: z.number().default(5_000),
+
+  /**
    * Override defaults
    */
   overrides: z

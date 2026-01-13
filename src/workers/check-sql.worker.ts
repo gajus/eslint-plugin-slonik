@@ -75,19 +75,24 @@ export type WorkerResult = GenerateResult;
 function workerHandler(params: CheckSQLWorkerParams): TE.TaskEither<WorkerError, WorkerResult> {
   const strategy = getConnectionStrategyByRuleOptionConnection(params);
 
+  const connectionTimeout = params.connection.connectionTimeout;
+
   const connectionPayload = match(strategy)
     .with({ type: "databaseUrl" }, ({ databaseUrl }) =>
-      TE.right(connections.getOrCreate(databaseUrl)),
+      TE.right(connections.getOrCreate(databaseUrl, { connectionTimeout })),
     )
     .with({ type: "migrations" }, ({ migrationsDir, databaseName, connectionUrl }) => {
       const { connectionOptions, databaseUrl } = getMigrationDatabaseMetadata({
         connectionUrl,
         databaseName,
       });
-      const { sql, isFirst } = connections.getOrCreate(databaseUrl);
+      const { sql, isFirst } = connections.getOrCreate(databaseUrl, { connectionTimeout });
       const { sql: migrationSql } = connections.getOrCreate(connectionUrl, {
-        onnotice: () => {
-          /* silence notices */
+        connectionTimeout,
+        postgresOptions: {
+          onnotice: () => {
+            /* silence notices */
+          },
         },
       });
       const connectionPayload: ConnectionPayload = { sql, isFirst, databaseUrl };

@@ -8,13 +8,18 @@ import {
 import { O, pipe } from "./fp-ts";
 import { mapConnectionOptionsToString, parseConnection } from "./pg.utils";
 
+export interface ConnectionOptions {
+  postgresOptions?: postgres.Options<any>;
+  connectionTimeout: number;
+}
+
 export function createConnectionManager() {
    
   const connectionMap: Map<string, Sql<any>> = new Map();
 
   return {
      
-    getOrCreate: (databaseUrl: string, options?: postgres.Options<any>) =>
+    getOrCreate: (databaseUrl: string, options?: ConnectionOptions) =>
       getOrCreateConnection(databaseUrl, connectionMap, options),
     close: (params: CloseConnectionParams) => closeConnection(params, connectionMap),
   };
@@ -25,7 +30,7 @@ function getOrCreateConnection(
    
   connectionMap: Map<string, Sql<any>>,
    
-  options?: postgres.Options<any>,
+  options?: ConnectionOptions,
 ): ConnectionPayload {
   return pipe(
     O.fromNullable(connectionMap.get(databaseUrl)),
@@ -39,7 +44,8 @@ function getOrCreateConnection(
           user: config.user,
           password: config.password,
           database: config.database,
-          ...options,
+          connect_timeout: Math.ceil(options.connectionTimeout / 1_000),
+          ...options.postgresOptions,
         });
         connectionMap.set(databaseUrl, sql);
         return { sql, databaseUrl, isFirst: true };
