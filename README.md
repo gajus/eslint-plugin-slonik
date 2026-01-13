@@ -77,10 +77,10 @@ export default [
 | `sql.date(date)` | ✅ Full | Extracts type → `$1::date` |
 | `sql.timestamp(date)` | ✅ Full | Extracts type → `$1::timestamptz` |
 | `sql.interval({...})` | ✅ Full | Extracts type → `$1::interval` |
+| `sql.json(value)` | ✅ Full | Extracts type → `$1::json` |
+| `sql.jsonb(value)` | ✅ Full | Extracts type → `$1::jsonb` |
 | `sql.join([...], glue)` | ✅ Skip | Skipped (runtime content) |
 | `sql.binary(buffer)` | ✅ Skip | Skipped |
-| `sql.json(value)` | ✅ Skip | Skipped |
-| `sql.jsonb(value)` | ✅ Skip | Skipped |
 | `sql.uuid(str)` | ✅ Skip | Skipped |
 | `sql.literalValue(str)` | ✅ Skip | Skipped |
 
@@ -125,6 +125,12 @@ sql.type(z.object({ id: z.number() }))`
   SELECT id FROM events WHERE created_at > NOW() - ${sql.interval({ days: 7 })}
 `;
 // → Validates: SELECT id FROM events WHERE created_at > NOW() - $1::interval
+
+// sql.json and sql.jsonb for JSON values
+sql.type(z.object({ id: z.number() }))`
+  INSERT INTO settings (config) VALUES (${sql.jsonb({ theme: 'dark' })})
+`;
+// → Validates: INSERT INTO settings (config) VALUES ($1::jsonb)
 ```
 
 **Graceful Skip** means the plugin recognizes Slonik tokens and skips validation for those expressions, preventing false positives:

@@ -1231,3 +1231,237 @@ describe("Slonik sql.interval Detection", () => {
     });
   });
 });
+
+// Re-create the sql.json detection logic for testing
+function isSlonikJsonCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callExpr = expression as TSESTree.CallExpression;
+  const callee = callExpr.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  const memberExpr = callee as TSESTree.MemberExpression;
+
+  if (memberExpr.property.type !== "Identifier" ||
+      (memberExpr.property as TSESTree.Identifier).name !== "json") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(memberExpr.object);
+  return objectName === "sql";
+}
+
+// Re-create the sql.jsonb detection logic for testing
+function isSlonikJsonbCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callExpr = expression as TSESTree.CallExpression;
+  const callee = callExpr.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  const memberExpr = callee as TSESTree.MemberExpression;
+
+  if (memberExpr.property.type !== "Identifier" ||
+      (memberExpr.property as TSESTree.Identifier).name !== "jsonb") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(memberExpr.object);
+  return objectName === "sql";
+}
+
+// Helper to create mock sql.json() call expressions
+function createMockJsonCallExpression(objectName: string): TSESTree.CallExpression {
+  return {
+    type: "CallExpression",
+    callee: {
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: objectName,
+        range: [0, 0],
+        loc: {} as any,
+      },
+      property: {
+        type: "Identifier",
+        name: "json",
+        range: [0, 0],
+        loc: {} as any,
+      },
+      computed: false,
+      optional: false,
+      range: [0, 0],
+      loc: {} as any,
+    },
+    arguments: [
+      {
+        type: "ObjectExpression",
+        properties: [],
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.ObjectExpression,
+    ],
+    optional: false,
+    range: [0, 0],
+    loc: {} as any,
+  } as unknown as TSESTree.CallExpression;
+}
+
+// Helper to create mock sql.jsonb() call expressions
+function createMockJsonbCallExpression(objectName: string): TSESTree.CallExpression {
+  return {
+    type: "CallExpression",
+    callee: {
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: objectName,
+        range: [0, 0],
+        loc: {} as any,
+      },
+      property: {
+        type: "Identifier",
+        name: "jsonb",
+        range: [0, 0],
+        loc: {} as any,
+      },
+      computed: false,
+      optional: false,
+      range: [0, 0],
+      loc: {} as any,
+    },
+    arguments: [
+      {
+        type: "ObjectExpression",
+        properties: [],
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.ObjectExpression,
+    ],
+    optional: false,
+    range: [0, 0],
+    loc: {} as any,
+  } as unknown as TSESTree.CallExpression;
+}
+
+describe("Slonik sql.json Detection", () => {
+  describe("isSlonikJsonCall", () => {
+    it("should detect sql.json() calls", () => {
+      const expr = createMockJsonCallExpression("sql");
+      expect(isSlonikJsonCall(expr)).toBe(true);
+    });
+
+    it("should return false for non-sql objects", () => {
+      const expr = createMockJsonCallExpression("other");
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+
+    it("should return false for other sql methods", () => {
+      const expr = createMockCallExpression("sql", "array", "int4");
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.jsonb()", () => {
+      const expr = createMockJsonbCallExpression("sql");
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.date()", () => {
+      const expr = createMockDateCallExpression("sql");
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-call expressions", () => {
+      const expr = {
+        type: "Identifier",
+        name: "foo",
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.Identifier;
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-member-expression callees", () => {
+      const expr = {
+        type: "CallExpression",
+        callee: {
+          type: "Identifier",
+          name: "json",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        optional: false,
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.CallExpression;
+      expect(isSlonikJsonCall(expr)).toBe(false);
+    });
+  });
+});
+
+describe("Slonik sql.jsonb Detection", () => {
+  describe("isSlonikJsonbCall", () => {
+    it("should detect sql.jsonb() calls", () => {
+      const expr = createMockJsonbCallExpression("sql");
+      expect(isSlonikJsonbCall(expr)).toBe(true);
+    });
+
+    it("should return false for non-sql objects", () => {
+      const expr = createMockJsonbCallExpression("other");
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+
+    it("should return false for other sql methods", () => {
+      const expr = createMockCallExpression("sql", "array", "int4");
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.json()", () => {
+      const expr = createMockJsonCallExpression("sql");
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.date()", () => {
+      const expr = createMockDateCallExpression("sql");
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-call expressions", () => {
+      const expr = {
+        type: "Identifier",
+        name: "foo",
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.Identifier;
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-member-expression callees", () => {
+      const expr = {
+        type: "CallExpression",
+        callee: {
+          type: "Identifier",
+          name: "jsonb",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        optional: false,
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.CallExpression;
+      expect(isSlonikJsonbCall(expr)).toBe(false);
+    });
+  });
+});

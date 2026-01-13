@@ -335,6 +335,62 @@ function isSlonikIntervalCall(expression: TSESTree.Expression): boolean {
 }
 
 /**
+ * Check if an expression is a Slonik sql.json() call.
+ * 
+ * Slonik sql.json() syntax:
+ *   sql.json({ key: 'value' })
+ *   sql.json(myObject)
+ * 
+ * Returns true if this is a sql.json() call.
+ */
+function isSlonikJsonCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "json") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
+ * Check if an expression is a Slonik sql.jsonb() call.
+ * 
+ * Slonik sql.jsonb() syntax:
+ *   sql.jsonb({ key: 'value' })
+ *   sql.jsonb(myObject)
+ * 
+ * Returns true if this is a sql.jsonb() call.
+ */
+function isSlonikJsonbCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "jsonb") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
  * Result of extracting a Slonik sql.fragment expression.
  * Contains the SQL text and any nested expressions that need type checking.
  */
@@ -588,6 +644,50 @@ export function mapTemplateLiteralToQueryText(
     // Check for Slonik sql.interval() calls - these format an interval object to a PostgreSQL interval literal
     if (isSlonikIntervalCall(expression)) {
       const placeholder = `$${++$idx}::interval`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
+    }
+
+    // Check for Slonik sql.json() calls - these serialize an object to a PostgreSQL json value
+    if (isSlonikJsonCall(expression)) {
+      const placeholder = `$${++$idx}::json`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
+    }
+
+    // Check for Slonik sql.jsonb() calls - these serialize an object to a PostgreSQL jsonb value
+    if (isSlonikJsonbCall(expression)) {
+      const placeholder = `$${++$idx}::jsonb`;
       $queryText += placeholder;
 
       sourcemaps.push({

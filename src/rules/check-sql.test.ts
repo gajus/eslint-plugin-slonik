@@ -1883,6 +1883,70 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.json", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.json() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, data: object) {
+            sql\`UPDATE all_types SET json_column = \${sql.json(data)} WHERE id = \${id}\`
+          }
+        `,
+      },
+      {
+        name: "sql.json() with cast for comparison",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(data: { key: string }) {
+            sql\`SELECT * FROM all_types WHERE json_column::text = \${sql.json(data)}::text\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
+  ruleTester.run("sql.jsonb", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.jsonb() in INSERT statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function insert(data: { key: string }) {
+            sql\`INSERT INTO test_jsonb (jsonb_col) VALUES (\${sql.jsonb(data)})\`
+          }
+        `,
+      },
+      {
+        name: "sql.jsonb() with inline object",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM test_jsonb WHERE jsonb_col = \${sql.jsonb({ key: 'value' })}\`
+        `,
+      },
+      {
+        name: "sql.jsonb() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, data: object) {
+            sql\`UPDATE test_jsonb SET jsonb_col = \${sql.jsonb(data)} WHERE id = \${id}\`
+          }
+        `,
+      },
+      {
+        name: "sql.jsonb() with jsonb operators",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(data: { key: string }) {
+            sql\`SELECT * FROM test_jsonb WHERE jsonb_col @> \${sql.jsonb(data)}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {
