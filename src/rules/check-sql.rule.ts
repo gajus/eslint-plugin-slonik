@@ -1,5 +1,4 @@
-import { ResolvedTarget } from "@ts-safeql/generate";
-import { InvalidConfigError, doesMatchPattern, fmap } from "@ts-safeql/shared";
+import { InvalidConfigError, doesMatchPattern } from "@ts-safeql/shared";
 import {
   ESLintUtils,
   ParserServices,
@@ -9,13 +8,8 @@ import {
 } from "@typescript-eslint/utils";
 import { JSONSchema4 } from "@typescript-eslint/utils/json-schema";
 import { match } from "ts-pattern";
-import ts from "typescript";
 import { ESTreeUtils } from "../utils";
 import { E, J, flow, pipe } from "../utils/fp-ts";
-import {
-  ExpectedResolvedTarget,
-  getResolvedTargetByTypeNode,
-} from "../utils/get-resolved-target-by-type-node";
 import { isInEditorEnv } from "../utils/is-in-editor";
 import { memoize } from "../utils/memoize";
 import { locateNearestPackageJsonDir } from "../utils/node.utils";
@@ -25,29 +19,19 @@ import { WorkerError, WorkerResult } from "../workers/check-sql.worker";
 import {
   Config,
   ConnectionTarget,
-  InferLiteralsOption,
   RuleOptionConnection,
   RuleOptions,
   TagTarget,
   WrapperTarget,
-  defaultInferLiteralOptions,
 } from "./RuleOptions";
 import { getConfigFromFileWithContext } from "./check-sql.config";
 import {
-  TypeTransformer,
-  getFinalResolvedTargetString,
-  getResolvedTargetComparableString,
-  getResolvedTargetString,
   reportBaseError,
   reportDuplicateColumns,
-  reportIncorrectTypeAnnotations,
   reportInvalidConfig,
   reportInvalidQueryError,
-  reportInvalidTypeAnnotations,
-  reportMissingTypeAnnotations,
   reportPostgresError,
   shouldLintFile,
-  transformTypes,
 } from "./check-sql.utils";
 import z from "zod";
 
@@ -55,9 +39,6 @@ const messages = {
   typeInferenceFailed: "Type inference failed {{error}}",
   error: "{{error}}",
   invalidQuery: "Invalid Query: {{error}}",
-  missingTypeAnnotations: "Query is missing type annotation\n\tFix with: {{fix}}",
-  incorrectTypeAnnotations: `Query has incorrect type annotation.\n\tExpected: {{expected}}\n\t  Actual: {{actual}}`,
-  invalidTypeAnnotations: `Query has invalid type annotation (SafeQL does not support it. If you think it should, please open an issue)`,
 };
 export type RuleMessage = keyof typeof messages;
 
@@ -152,9 +133,6 @@ function reportCheck(params: {
     return reportBaseError({ context, error: fatalError, tag, hint });
   }
 
-  const nullAsOptional = connection.nullAsOptional ?? false;
-  const nullAsUndefined = connection.nullAsUndefined ?? false;
-
   return pipe(
     E.Do,
     E.bind("parser", () => {
@@ -241,92 +219,8 @@ function reportCheck(params: {
           })
           .exhaustive();
       },
-      ({ result, checker, parser }) => {
-        // If result is null, validation was skipped (e.g., dynamic sql.identifier)
-        if (result === null) {
-          return;
-        }
-
-        const isMissingTypeAnnotations = typeParameter === undefined;
-
-        if (isMissingTypeAnnotations) {
-          if (result.output === null) {
-            return;
-          }
-
-          return reportMissingTypeAnnotations({
-            tag: tag,
-            context: context,
-            baseNode: baseNode,
-            actual: getFinalResolvedTargetString({
-              target: result.output,
-              nullAsOptional: nullAsOptional ?? false,
-              nullAsUndefined: nullAsUndefined ?? false,
-              transform: target.transform,
-              inferLiterals: connection.inferLiterals ?? defaultInferLiteralOptions,
-            }),
-          });
-        }
-
-        const reservedTypes = memoize({
-          key: `reserved-types:${JSON.stringify(connection.overrides)}`,
-          value: () => {
-            const types = new Set<string>();
-
-            for (const value of Object.values(connection.overrides?.types ?? {})) {
-              types.add(typeof value === "string" ? value : value.return);
-            }
-
-            for (const columnType of Object.values(connection.overrides?.columns ?? {})) {
-              types.add(columnType);
-            }
-
-            return types;
-          },
-        });
-
-        const typeAnnotationState = getTypeAnnotationState({
-          generated: result.output,
-          typeParameter: typeParameter,
-          transform: target.transform,
-          checker: checker,
-          parser: parser,
-          reservedTypes: reservedTypes,
-          nullAsOptional: nullAsOptional,
-          nullAsUndefined: nullAsUndefined,
-          inferLiterals: connection.inferLiterals ?? defaultInferLiteralOptions,
-        });
-
-        if (typeAnnotationState === "INVALID") {
-          return reportInvalidTypeAnnotations({
-            context: context,
-            typeParameter: typeParameter,
-          });
-        }
-
-        if (!typeAnnotationState.isEqual) {
-          return reportIncorrectTypeAnnotations({
-            context,
-            typeParameter: typeParameter,
-            expected: fmap(typeAnnotationState.expected, (expected) =>
-              getResolvedTargetString({
-                target: expected,
-                nullAsOptional: false,
-                nullAsUndefined: false,
-                inferLiterals: params.connection.inferLiterals ?? defaultInferLiteralOptions,
-              }),
-            ),
-            actual: fmap(result.output, (output) =>
-              getFinalResolvedTargetString({
-                target: output,
-                nullAsOptional: connection.nullAsOptional ?? false,
-                nullAsUndefined: connection.nullAsUndefined ?? false,
-                transform: target.transform,
-                inferLiterals: connection.inferLiterals ?? defaultInferLiteralOptions,
-              }),
-            ),
-          });
-        }
+      () => {
+        // Type annotation checking is disabled - we only validate SQL syntax
       },
     ),
   );
@@ -408,123 +302,6 @@ function checkConnectionByWrapperExpression(params: {
   }
 }
 
-type GetTypeAnnotationStateParams = {
-  generated: ResolvedTarget | null;
-  typeParameter: TSESTree.TSTypeParameterInstantiation;
-  transform?: TypeTransformer;
-  parser: ParserServices;
-  checker: ts.TypeChecker;
-  reservedTypes: Set<string>;
-  nullAsOptional: boolean;
-  nullAsUndefined: boolean;
-  inferLiterals: InferLiteralsOption;
-};
-
-function getTypeAnnotationState({
-  generated,
-  typeParameter,
-  transform,
-  parser,
-  checker,
-  reservedTypes,
-  nullAsOptional,
-  nullAsUndefined,
-  inferLiterals,
-}: GetTypeAnnotationStateParams) {
-  if (typeParameter.params.length !== 1) {
-    return "INVALID" as const;
-  }
-
-  const typeNode = typeParameter.params[0];
-
-  let expected;
-  try {
-    expected = getResolvedTargetByTypeNode({
-      checker,
-      parser,
-      typeNode,
-      reservedTypes,
-    });
-  } catch (error) {
-    console.error('[slonik/check-sql] DEBUG: Error in getResolvedTargetByTypeNode:', error);
-    console.error('[slonik/check-sql] DEBUG: typeNode:', typeNode);
-    console.error('[slonik/check-sql] DEBUG: typeNode.type:', typeNode?.type);
-    throw error;
-  }
-
-  return getResolvedTargetsEquality({
-    expected,
-    generated,
-    nullAsOptional,
-    nullAsUndefined,
-    inferLiterals,
-    transform,
-  });
-}
-
-function getResolvedTargetsEquality(params: {
-  expected: ExpectedResolvedTarget | null;
-  generated: ResolvedTarget | null;
-  nullAsOptional: boolean;
-  nullAsUndefined: boolean;
-  inferLiterals: InferLiteralsOption;
-  transform?: TypeTransformer;
-}) {
-  if (params.expected === null && params.generated === null) {
-    return {
-      isEqual: true,
-      expected: params.expected,
-      generated: params.generated,
-    };
-  }
-
-  if (params.expected === null || params.generated === null) {
-    return {
-      isEqual: false,
-      expected: params.expected,
-      generated: params.generated,
-    };
-  }
-
-  let expectedString = getResolvedTargetComparableString({
-    target: params.expected,
-    nullAsOptional: false,
-    nullAsUndefined: false,
-    inferLiterals: params.inferLiterals,
-  });
-
-  let generatedString = getResolvedTargetComparableString({
-    target: params.generated,
-    nullAsOptional: params.nullAsOptional,
-    nullAsUndefined: params.nullAsUndefined,
-    inferLiterals: params.inferLiterals,
-  });
-
-  if (expectedString === null || generatedString === null) {
-    return {
-      isEqual: false,
-      expected: params.expected,
-      generated: params.generated,
-    };
-  }
-
-  expectedString = expectedString.replace(/'/g, '"');
-  generatedString = generatedString.replace(/'/g, '"');
-
-  expectedString = expectedString.split(", ").sort().join(", ");
-  generatedString = generatedString.split(", ").sort().join(", ");
-
-  if (params.transform !== undefined) {
-    generatedString = transformTypes(generatedString, params.transform);
-  }
-
-  return {
-    isEqual: expectedString === generatedString,
-    expected: params.expected,
-    generated: params.generated,
-  };
-}
-
 const createRule = ESLintUtils.RuleCreator(() => `https://github.com/gajus/eslint-plugin-slonik`)<
   RuleOptions,
   RuleMessage
@@ -535,7 +312,7 @@ export default createRule({
   meta: {
     fixable: "code",
     docs: {
-      description: "Ensure that sql queries have type annotations",
+      description: "Validate SQL queries against the database schema",
     },
     messages: messages,
     type: "problem",

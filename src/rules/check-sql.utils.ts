@@ -1,4 +1,3 @@
-import { ResolvedTarget } from "@ts-safeql/generate";
 import {
   DuplicateColumnsError,
   InvalidConfigError,
@@ -7,7 +6,6 @@ import {
   InvalidQueryError,
   PostgresError,
   QuerySourceMapEntry,
-  fmap,
 } from "@ts-safeql/shared";
 import { TSESTree } from "@typescript-eslint/utils";
 import { SourceCode } from "@typescript-eslint/utils/ts-eslint";
@@ -17,73 +15,13 @@ import path from "path";
 import { Sql } from "postgres";
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { isOneOf } from "../utils/estree.utils";
 import { E, TE, pipe } from "../utils/fp-ts";
-import { ExpectedResolvedTarget } from "../utils/get-resolved-target-by-type-node";
 import { mapConnectionOptionsToString, parseConnection } from "../utils/pg.utils";
 import { WorkerError } from "../workers/check-sql.worker";
 import { RuleContext } from "./check-sql.rule";
-import { InferLiteralsOption, RuleOptionConnection, zConnectionMigration } from "./RuleOptions";
-
-type TypeReplacerString = string;
-type TypeReplacerFromTo = [string, string];
-export type TypeTransformer = TypeReplacerString | (TypeReplacerString | TypeReplacerFromTo)[];
+import { RuleOptionConnection, zConnectionMigration } from "./RuleOptions";
 
 export const DEFAULT_CONNECTION_URL = "postgres://postgres:postgres@localhost:5432/postgres";
-
-function isReplacerFromTo(replacer: TypeTransformer[number]): replacer is TypeReplacerFromTo {
-  return Array.isArray(replacer) && replacer.length === 2;
-}
-
-function transformType(typeString: string, typeReplacer: TypeTransformer[number]): string {
-  return isReplacerFromTo(typeReplacer)
-    ? typeString.replace(new RegExp(typeReplacer[0], "g"), typeReplacer[1])
-    : typeReplacer.replace("{type}", typeString);
-}
-
-export function transformTypes(typeString: string, transform: TypeTransformer): string {
-  if (transform === undefined || typeString === null) {
-    return typeString;
-  }
-
-  if (typeof transform === "string") {
-    return transformType(typeString, transform);
-  }
-
-  let transformed = typeString;
-
-  for (const replacer of transform) {
-    transformed = transformType(transformed, replacer);
-  }
-
-  return transformed;
-}
-
-/**
- * Takes a generated result and a transform type and returns a result with the
- * transformed type.
- *
- * @param transform could be either:
- *  - a string that has {type} in it,
- *  - an array of tuples that behave as [valueToBeReplaced, typeToReplaceWith]
- *  - an array that has a mix of the above (such as ["{type}[]", ["colname", "x_colname"]])
- */
-export function getFinalResolvedTargetString(params: {
-  target: ResolvedTarget;
-  transform?: TypeTransformer;
-  nullAsUndefined: boolean;
-  nullAsOptional: boolean;
-  inferLiterals: InferLiteralsOption;
-}) {
-  const asString = getResolvedTargetString({
-    target: params.target,
-    nullAsOptional: params.nullAsOptional,
-    nullAsUndefined: params.nullAsUndefined,
-    inferLiterals: params.inferLiterals,
-  });
-
-  return fmap(params.transform, (transform) => transformTypes(asString, transform)) ?? asString;
-}
 
 export function reportInvalidQueryError(params: {
   context: RuleContext;
@@ -110,7 +48,7 @@ export function reportBaseError(params: {
     node: tag,
     messageId: "error",
     data: {
-      error: [error.message, fmap(params.hint, (hint) => `Hint: ${hint}`)]
+      error: [error.message, params.hint ? `Hint: ${params.hint}` : undefined]
         .filter(Boolean)
         .join("\n"),
     },
@@ -180,55 +118,6 @@ export function reportPostgresError(params: {
   });
 }
 
-export function reportMissingTypeAnnotations(params: {
-  context: RuleContext;
-  tag: TSESTree.TaggedTemplateExpression;
-  baseNode: TSESTree.BaseNode;
-  actual: string;
-}) {
-  const { context, tag, baseNode, actual } = params;
-
-  return context.report({
-    node: tag,
-    messageId: "missingTypeAnnotations",
-    loc: baseNode.loc,
-    fix: (fixer) => fixer.insertTextAfterRange(baseNode.range, `<${actual}>`),
-    data: {
-      fix: actual,
-    },
-  });
-}
-
-export function reportIncorrectTypeAnnotations(params: {
-  context: RuleContext;
-  typeParameter: TSESTree.TSTypeParameterInstantiation;
-  expected: string | null;
-  actual: string | null;
-}) {
-  const { context, typeParameter } = params;
-  const newValue = params.actual === null ? "" : `<${params.actual}>`;
-
-  return context.report({
-    node: typeParameter.params[0],
-    messageId: "incorrectTypeAnnotations",
-    fix: (fixer) => fixer.replaceText(typeParameter, newValue),
-    data: {
-      expected: params.expected,
-      actual: params.actual ?? "No type annotation",
-    },
-  });
-}
-export function reportInvalidTypeAnnotations(params: {
-  context: RuleContext;
-  typeParameter: TSESTree.TSTypeParameterInstantiation;
-}) {
-  const { context, typeParameter } = params;
-
-  return context.report({
-    node: typeParameter.params[0],
-    messageId: "invalidTypeAnnotations",
-  });
-}
 
 export function getDatabaseName(params: {
   databaseName: string | undefined;
@@ -380,163 +269,6 @@ function runSingleMigrationFile(sql: Sql, filePath: string) {
     TE.chain((content) => TE.tryCatch(() => sql.unsafe(content), E.toError)),
     TE.mapLeft(InvalidMigrationError.fromErrorC(filePath)),
   );
-}
-
-function shouldInferLiteral(
-  base: ExpectedResolvedTarget | ResolvedTarget,
-  inferLiterals: InferLiteralsOption,
-) {
-  if (base.kind !== "type") return true;
-  if (inferLiterals === true) return true;
-  if (Array.isArray(inferLiterals) && isOneOf(base.value, inferLiterals)) return true;
-
-  return false;
-}
-
-function unique<T>(array: T[]): T[] {
-  return Array.from(new Set(array));
-}
-
-export function getResolvedTargetComparableString(params: {
-  target: ExpectedResolvedTarget | ResolvedTarget;
-  nullAsOptional: boolean;
-  nullAsUndefined: boolean;
-  inferLiterals: InferLiteralsOption;
-}): string {
-  const { target, nullAsUndefined, nullAsOptional } = params;
-  const nullType = nullAsUndefined ? "undefined" : "null";
-
-  switch (target.kind) {
-    case "literal": {
-      const value = shouldInferLiteral(target.base, params.inferLiterals)
-        ? target.value
-        : getResolvedTargetComparableString({
-            target: target.base,
-            nullAsOptional: params.nullAsOptional,
-            nullAsUndefined: params.nullAsUndefined,
-            inferLiterals: params.inferLiterals,
-          });
-
-      return value === "null" ? nullType : value;
-    }
-    case "type":
-      return target.value === "null" ? nullType : target.value.replace(/"/g, "'");
-
-    case "union":
-      return unique(
-        target.value
-          .map((target) => getResolvedTargetComparableString({ ...params, target }))
-          .sort(),
-      ).join(" | ");
-
-    case "array": {
-      let arrayString = getResolvedTargetComparableString({ ...params, target: target.value });
-
-      if (target.value.kind === "union" && arrayString.includes("|")) {
-        arrayString = `(${arrayString})`;
-      }
-
-      return target.syntax === "type-reference" ? `Array<${arrayString}>` : `${arrayString}[]`;
-    }
-
-    case "object": {
-      if (target.value.length === 0) {
-        return `{ }`;
-      }
-
-      const entriesString = target.value
-        .map(([key, target]) => {
-          const isNullable = isNullableResolvedTarget(target);
-          const keyString = isNullable && nullAsOptional ? `${key}?` : key;
-          const valueString = getResolvedTargetComparableString({ ...params, target });
-
-          return `${keyString}: ${valueString}`;
-        })
-        .sort()
-        .join(";");
-
-      return `{ ${entriesString} }`;
-    }
-  }
-}
-
-export function getResolvedTargetString(params: {
-  target: ExpectedResolvedTarget | ResolvedTarget;
-  nullAsUndefined: boolean;
-  nullAsOptional: boolean;
-  inferLiterals: InferLiteralsOption;
-}): string {
-  const { target, nullAsUndefined, nullAsOptional } = params;
-  const nullType = nullAsUndefined ? "undefined" : "null";
-
-  switch (target.kind) {
-    case "literal": {
-      const value = shouldInferLiteral(target.base, params.inferLiterals)
-        ? target.value
-        : getResolvedTargetString({
-            target: target.base,
-            nullAsOptional: params.nullAsOptional,
-            nullAsUndefined: params.nullAsUndefined,
-            inferLiterals: params.inferLiterals,
-          });
-
-      return value === "null" ? nullType : value;
-    }
-
-    case "type":
-      return target.value === "null" ? nullType : target.value;
-
-    case "union":
-      return unique(
-        target.value.map((target) => getResolvedTargetString({ ...params, target })),
-      ).join(" | ");
-
-    case "array": {
-      const arrayString = getResolvedTargetString({ ...params, target: target.value });
-      return target.value.kind === "union" && arrayString.includes("|")
-        ? `(${arrayString})[]`
-        : `${arrayString}[]`;
-    }
-
-    case "object": {
-      if (target.value.length === 0) {
-        return `{ }`;
-      }
-
-      const entriesString = target.value
-        .map(([key, target]) => {
-          const isNullable = isNullableResolvedTarget(target);
-          const valueString = getResolvedTargetString({ ...params, target });
-          let keyString = key;
-
-          if (/[^A-z_]/.test(keyString)) {
-            keyString = `'${keyString}'`;
-          }
-
-          keyString = isNullable && nullAsOptional ? `${keyString}?` : keyString;
-
-          return `${keyString}: ${valueString}`;
-        })
-        .join("; ");
-
-      return `{ ${entriesString} }`;
-    }
-  }
-}
-
-function isNullableResolvedTarget(target: ExpectedResolvedTarget | ResolvedTarget): boolean {
-  switch (target.kind) {
-    case "type":
-    case "literal":
-      return ["any", "null"].includes(target.value) === false;
-
-    case "union":
-      return target.value.some((x) => x.kind === "type" && x.value === "null");
-
-    case "array":
-    case "object":
-      return false;
-  }
 }
 
 interface GetWordRangeInPositionParams {
