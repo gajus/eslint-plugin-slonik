@@ -2011,6 +2011,37 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.binary", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.binary() in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(data: Buffer) {
+            sql\`SELECT * FROM all_types WHERE bytea_column = \${sql.binary(data)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.binary() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, data: Buffer) {
+            sql\`UPDATE all_types SET bytea_column = \${sql.binary(data)} WHERE id = \${id}\`
+          }
+        `,
+      },
+      {
+        name: "sql.binary() with Buffer.from()",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM all_types WHERE bytea_column = \${sql.binary(Buffer.from('test'))}\`
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {

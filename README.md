@@ -81,8 +81,8 @@ export default [
 | `sql.jsonb(value)` | ✅ Full | Extracts type → `$1::jsonb` |
 | `sql.literalValue(value)` | ✅ Full | Extracts type → `$1` |
 | `sql.uuid(str)` | ✅ Full | Extracts type → `$1::uuid` |
+| `sql.binary(buffer)` | ✅ Full | Extracts type → `$1::bytea` |
 | `sql.join([...], glue)` | ✅ Skip | Skipped (runtime content) |
-| `sql.binary(buffer)` | ✅ Skip | Skipped |
 
 ### How It Works
 
@@ -143,6 +143,12 @@ sql.type(z.object({ id: z.number() }))`
   SELECT id FROM users WHERE external_id = ${sql.uuid(externalId)}
 `;
 // → Validates: SELECT id FROM users WHERE external_id = $1::uuid
+
+// sql.binary for binary data
+sql.type(z.object({ id: z.number() }))`
+  UPDATE files SET content = ${sql.binary(buffer)} WHERE id = ${id}
+`;
+// → Validates: UPDATE files SET content = $1::bytea WHERE id = $2
 ```
 
 **Graceful Skip** means the plugin recognizes Slonik tokens and skips validation for those expressions, preventing false positives:
