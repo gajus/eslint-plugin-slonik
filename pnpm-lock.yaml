@@ -18,13 +18,13 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       fp-ts:
-        specifier: ^2.16.9
+        specifier: ^2.16.11
         version: 2.16.11
       pg-connection-string:
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.9.1
+        version: 2.9.1
       postgres:
-        specifier: ^3.4.5
+        specifier: ^3.4.8
         version: 3.4.8
       quansync:
         specifier: ^0.2.10
@@ -33,62 +33,62 @@ importers:
         specifier: ^0.10.3
         version: 0.10.4
       ts-pattern:
-        specifier: ^5.6.2
+        specifier: ^5.9.0
         version: 5.9.0
       tsx:
-        specifier: ^4.19.3
+        specifier: ^4.21.0
         version: 4.21.0
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.3.5
         version: 4.3.5
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.2
         version: 9.39.2
       '@ts-safeql/generate':
-        specifier: ^4.1.0
-        version: 4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+        specifier: ^4.1.1
+        version: 4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@ts-safeql/shared':
-        specifier: ^4.1.0
-        version: 4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+        specifier: ^4.1.1
+        version: 4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@ts-safeql/sql-ast':
-        specifier: ^4.1.0
-        version: 4.1.0
+        specifier: ^4.1.1
+        version: 4.1.1
       '@types/node':
         specifier: ^22.13.13
         version: 22.19.5
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.28.0
+        specifier: ^8.53.0
         version: 8.53.0(@typescript-eslint/parser@8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/parser':
-        specifier: ^8.28.0
+        specifier: ^8.53.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/rule-tester':
-        specifier: ^8.28.0
+        specifier: ^8.53.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       cspell:
         specifier: ^9.6.0
         version: 9.6.0
       eslint:
-        specifier: ^9.23.0
+        specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
       knip:
         specifier: ^5.80.2
         version: 5.80.2(@types/node@22.19.5)(typescript@5.9.3)
       libpg-query:
-        specifier: ^17.5.2
+        specifier: ^17.7.3
         version: 17.7.3
       semantic-release:
         specifier: ^25.0.2
         version: 25.0.2(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.2
+        specifier: ^5.9.3
         version: 5.9.3
       typescript-eslint:
         specifier: ^8.53.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       unbuild:
-        specifier: ^3.5.0
+        specifier: ^3.6.1
         version: 3.6.1(typescript@5.9.3)
       vitest:
         specifier: ^4.0.17
@@ -1135,17 +1135,17 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@ts-safeql/generate@4.1.0':
-    resolution: {integrity: sha512-b3F7Ny70RW0hWFGlCON4ucStbmbV04CowavdvGWYxwOTT3SvVYbbMOMctM5p4MBAGz8RxLgVaWVzif8u/sbUhA==}
+  '@ts-safeql/generate@4.1.1':
+    resolution: {integrity: sha512-q00Ux3AqWXlgT4N22Xn9oxtBdRabVO2HP9lye44RvKZn3DO2yVnflD/NwSaJ8Ge56TkBrlgC9LkcIObcZaoFFg==}
 
-  '@ts-safeql/shared@4.1.0':
-    resolution: {integrity: sha512-u0FqNXJKrzy83RGsZt/WPLqmpS5eDI5zOczO9rEUZ3FeOMtxzePHhsgq4Tq5HcAUQwuX+XSPFLT8/Hd/PyvqTQ==}
+  '@ts-safeql/shared@4.1.1':
+    resolution: {integrity: sha512-P12e6hmM5c8zaPzvxdgArLLl7PI+P75/pKxWii7XKWh5wPPKdSwv/XkJhM8gT8u6DkQdsGjb0mA5n0/PyAV97g==}
 
-  '@ts-safeql/sql-ast@4.1.0':
-    resolution: {integrity: sha512-rSWK+Es8Lvy42JaHR2zPQxSg6Deny2ocvbPtcwdhKbU4F0hlW/X7Vqqumpmd+MGVI+lIfqV/25qRMsVJH9qeXg==}
+  '@ts-safeql/sql-ast@4.1.1':
+    resolution: {integrity: sha512-rwzYyeC/hoywMCLCx5gS7acFMklPnJTotTRq3JLtBn8J8fd7g2gTGITpaoN95qCzICNSCTTHtbPXNDXA9UN2eA==}
 
-  '@ts-safeql/test-utils@0.0.58':
-    resolution: {integrity: sha512-OxbostQSGVsnhXYR6YVmrOzN9PeDp7efoa4A59dz0i+IXWmZYhtPLfdBnHvs0S7BI27NeCyG3GpUX4oP4cZzqg==}
+  '@ts-safeql/test-utils@0.0.59':
+    resolution: {integrity: sha512-zV+qAVo63PEY0gR+9VOeQYE1GZxiW2vZ5H1O7uG5kGKsk1EyrAB3iqTiWoErBQrcrexCXjMIpkUJL8DscKMdHw==}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -2559,8 +2559,8 @@ packages:
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
-  pg-connection-string@2.7.0:
-    resolution: {integrity: sha512-PI2W9mv53rXJQEOb8xNR8lH7Hr+EKa6oJa38zsK0S/ky2er16ios1wLKhZyxzD7jUReiWokc9WK5nxSnC7W1TA==}
+  pg-connection-string@2.9.1:
+    resolution: {integrity: sha512-nkc6NpDcvPVpZXxrreI/FOtX3XemeLl8E0qFr6F2Lrm/I8WOnaWNhIPK2Z7OHpw7gh5XJThi6j6ppgNoaT1w4w==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -4211,20 +4211,20 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@ts-safeql/generate@4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
+  '@ts-safeql/generate@4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
-      '@ts-safeql/shared': 4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
-      '@ts-safeql/sql-ast': 4.1.0
-      '@ts-safeql/test-utils': 0.0.58(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@ts-safeql/shared': 4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@ts-safeql/sql-ast': 4.1.1
+      '@ts-safeql/test-utils': 0.0.59(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       fp-ts: 2.16.11
-      pg-connection-string: 2.7.0
+      pg-connection-string: 2.9.1
       postgres: 3.4.8
     transitivePeerDependencies:
       - eslint
       - supports-color
       - typescript
 
-  '@ts-safeql/shared@4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
+  '@ts-safeql/shared@4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/utils': 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       minimatch: 10.1.1
@@ -4234,13 +4234,13 @@ snapshots:
       - supports-color
       - typescript
 
-  '@ts-safeql/sql-ast@4.1.0': {}
+  '@ts-safeql/sql-ast@4.1.1': {}
 
-  '@ts-safeql/test-utils@0.0.58(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
+  '@ts-safeql/test-utils@0.0.59(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
-      '@ts-safeql/shared': 4.1.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@ts-safeql/shared': 4.1.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       nanoid: 5.1.6
-      pg-connection-string: 2.7.0
+      pg-connection-string: 2.9.1
       postgres: 3.4.8
     transitivePeerDependencies:
       - eslint
@@ -5709,7 +5709,7 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  pg-connection-string@2.7.0: {}
+  pg-connection-string@2.9.1: {}
 
   picocolors@1.1.1: {}
 

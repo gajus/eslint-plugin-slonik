@@ -50,38 +50,38 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@ts-safeql/generate": "^4.1.0",
-    "@ts-safeql/shared": "^4.1.0",
-    "@ts-safeql/sql-ast": "^4.1.0",
+    "@ts-safeql/generate": "^4.1.1",
+    "@ts-safeql/shared": "^4.1.1",
+    "@ts-safeql/sql-ast": "^4.1.1",
     "@types/node": "^22.13.13",
-    "@typescript-eslint/eslint-plugin": "^8.28.0",
-    "@typescript-eslint/parser": "^8.28.0",
-    "@typescript-eslint/rule-tester": "^8.28.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
+    "@typescript-eslint/rule-tester": "^8.53.0",
     "cspell": "^9.6.0",
-    "eslint": "^9.23.0",
+    "eslint": "^9.39.2",
     "knip": "^5.80.2",
-    "libpg-query": "^17.5.2",
+    "libpg-query": "^17.7.3",
     "semantic-release": "^25.0.2",
-    "typescript": "^5.8.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.0",
-    "unbuild": "^3.5.0",
+    "unbuild": "^3.6.1",
     "vitest": "^4.0.17"
   },
   "dependencies": {
     "@typescript-eslint/typescript-estree": "^8.53.0",
     "@typescript-eslint/utils": "^8.53.0",
     "chokidar": "^4.0.3",
-    "fp-ts": "^2.16.9",
-    "pg-connection-string": "2.7.0",
-    "postgres": "^3.4.5",
+    "fp-ts": "^2.16.11",
+    "pg-connection-string": "2.9.1",
+    "postgres": "^3.4.8",
     "quansync": "^0.2.10",
     "synckit": "^0.10.3",
-    "ts-pattern": "^5.6.2",
-    "tsx": "^4.19.3",
-    "zod": "^4.1.12"
+    "ts-pattern": "^5.9.0",
+    "tsx": "^4.21.0",
+    "zod": "^4.3.5"
   },
   "peerDependencies": {
     "libpg-query": ">=13.2.5"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.28.0"
 }
