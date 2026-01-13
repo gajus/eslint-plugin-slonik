@@ -8,9 +8,11 @@ import {
 import { O, pipe } from "./fp-ts";
 import { mapConnectionOptionsToString, parseConnection } from "./pg.utils";
 
+const DEFAULT_CONNECTION_TIMEOUT_MS = 5_000;
+
 export interface ConnectionOptions {
   postgresOptions?: postgres.Options<any>;
-  connectionTimeout: number;
+  connectionTimeout?: number;
 }
 
 export function createConnectionManager() {
@@ -38,14 +40,15 @@ function getOrCreateConnection(
       () => {
         // Parse URL to ensure credentials are extracted, not inferred from env
         const config = parseConnection(databaseUrl);
+        const timeoutMs = options?.connectionTimeout ?? DEFAULT_CONNECTION_TIMEOUT_MS;
         const sql = postgres({
           host: config.host,
           port: config.port,
           user: config.user,
           password: config.password,
           database: config.database,
-          connect_timeout: Math.ceil(options.connectionTimeout / 1_000),
-          ...options.postgresOptions,
+          connect_timeout: Math.ceil(timeoutMs / 1_000),
+          ...options?.postgresOptions,
         });
         connectionMap.set(databaseUrl, sql);
         return { sql, databaseUrl, isFirst: true };

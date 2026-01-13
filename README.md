@@ -178,7 +178,7 @@ targets: [
 
 ```bash
 pnpm add slonik zod
-pnpm add -D eslint-plugin-slonik @typescript-eslint/utils libpg-query
+pnpm add -D eslint-plugin-slonik libpg-query
 ```
 
 ### 2. Create your SQL tag with type aliases
