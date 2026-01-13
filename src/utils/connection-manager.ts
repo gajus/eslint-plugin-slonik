@@ -15,14 +15,38 @@ export interface ConnectionOptions {
   connectionTimeout?: number;
 }
 
+export class ConnectionFailedError extends Error {
+  readonly _tag = "ConnectionFailedError" as const;
+
+  constructor(
+    public readonly databaseUrl: string,
+    public readonly originalError: Error,
+  ) {
+    super(`Connection to database failed: ${originalError.message}`);
+    this.name = "ConnectionFailedError";
+  }
+}
+
 export function createConnectionManager() {
    
   const connectionMap: Map<string, Sql<any>> = new Map();
+  const failedConnections: Map<string, Error> = new Map();
 
   return {
      
     getOrCreate: (databaseUrl: string, options?: ConnectionOptions) =>
-      getOrCreateConnection(databaseUrl, connectionMap, options),
+      getOrCreateConnection(databaseUrl, connectionMap, failedConnections, options),
+    markFailed: (databaseUrl: string, error: Error) => {
+      failedConnections.set(databaseUrl, error);
+      // Clean up the connection if it exists
+      const sql = connectionMap.get(databaseUrl);
+      if (sql) {
+        sql.end().catch(() => {});
+        connectionMap.delete(databaseUrl);
+      }
+    },
+    isConnectionFailed: (databaseUrl: string) => failedConnections.has(databaseUrl),
+    getFailedError: (databaseUrl: string) => failedConnections.get(databaseUrl),
     close: (params: CloseConnectionParams) => closeConnection(params, connectionMap),
   };
 }
@@ -31,9 +55,16 @@ function getOrCreateConnection(
   databaseUrl: string,
    
   connectionMap: Map<string, Sql<any>>,
+  failedConnections: Map<string, Error>,
    
   options?: ConnectionOptions,
 ): ConnectionPayload {
+  // Check if this connection has previously failed - bail out early
+  const previousError = failedConnections.get(databaseUrl);
+  if (previousError) {
+    throw new ConnectionFailedError(databaseUrl, previousError);
+  }
+
   return pipe(
     O.fromNullable(connectionMap.get(databaseUrl)),
     O.foldW(

@@ -234,6 +234,11 @@ function reportCheck(params: {
             );
             return;
           })
+          .with({ _tag: "ConnectionFailedError" }, () => {
+            // Connection has already failed - skip silently since we've already warned
+            // and marked the connection as failed to prevent future attempts
+            return;
+          })
           .exhaustive();
       },
       ({ result, checker, parser }) => {
