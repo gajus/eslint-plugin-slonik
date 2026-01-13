@@ -74,8 +74,8 @@
     "fp-ts": "^2.16.11",
     "pg-connection-string": "2.9.1",
     "postgres": "^3.4.8",
-    "quansync": "^0.2.10",
-    "synckit": "^0.10.3",
+    "quansync": "^1.0.0",
+    "synckit": "^0.11.11",
     "ts-pattern": "^5.9.0",
     "tsx": "^4.21.0",
     "zod": "^4.3.5"
