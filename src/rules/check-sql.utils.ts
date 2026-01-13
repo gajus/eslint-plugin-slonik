@@ -193,10 +193,6 @@ export function getConnectionStrategyByRuleOptionConnection(params: {
 }): ConnectionStrategy {
   const { connection, projectDir } = params;
 
-  if ("databaseUrl" in connection) {
-    return { type: "databaseUrl", ...connection };
-  }
-
   if ("migrationsDir" in connection) {
     return {
       type: "migrations",
@@ -211,7 +207,16 @@ export function getConnectionStrategyByRuleOptionConnection(params: {
     };
   }
 
-  return match(connection).exhaustive();
+  if ("databaseUrl" in connection && connection.databaseUrl) {
+    return { type: "databaseUrl", databaseUrl: connection.databaseUrl };
+  }
+
+  // This case should never be reached because invalid connections are filtered out
+  // in check-sql.rule.ts before reaching this point. If we get here, it means
+  // databaseUrl was undefined/null which should have been filtered.
+  throw new Error(
+    "[eslint-plugin-slonik] Invalid connection configuration: databaseUrl is required but was not provided.",
+  );
 }
 
 export interface ConnectionPayload {

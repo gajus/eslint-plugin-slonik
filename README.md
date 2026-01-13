@@ -65,6 +65,17 @@ export default [
 ];
 ```
 
+### Optional Database URL
+
+The `databaseUrl` can be `undefined` or `null`. When not configured, SQL validation is disabled and a warning is logged:
+
+```
+[eslint-plugin-slonik] databaseUrl is not configured. SQL validation is disabled.
+Set the DATABASE_URL environment variable or configure databaseUrl in your ESLint config.
+```
+
+This allows you to use the plugin in environments where a database connection is not available (e.g., CI builds without database access), while still having the configuration in place for local development.
+
 ## Slonik SQL Tag Support
 
 | SQL Tag | Support | Behavior |

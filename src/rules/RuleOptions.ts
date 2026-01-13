@@ -127,9 +127,10 @@ export const zConnectionMigration = z.object({
 });
 const zConnectionUrl = z.object({
   /**
-   * The connection url to the database
+   * The connection url to the database.
+   * If undefined or null, the connection will be skipped and a warning will be logged.
    */
-  databaseUrl: z.string(),
+  databaseUrl: z.string().nullish(),
 });
 const zRuleOptionConnection = z.union([
   zBaseSchema.merge(zConnectionMigration),

@@ -44,6 +44,26 @@ export type RuleMessage = keyof typeof messages;
 
 export type RuleContext = Readonly<TSESLint.RuleContext<RuleMessage, RuleOptions>>;
 
+let missingDatabaseUrlWarningLogged = false;
+
+/**
+ * Check if a connection is valid and should be processed.
+ * Returns false if the connection is missing required database configuration.
+ */
+function isConnectionValid(connection: RuleOptionConnection): boolean {
+  // Migration-based connections are always valid (they use a default connection URL)
+  if ("migrationsDir" in connection) {
+    return true;
+  }
+
+  // URL-based connections require a valid databaseUrl
+  if ("databaseUrl" in connection && connection.databaseUrl) {
+    return true;
+  }
+
+  return false;
+}
+
 function check(params: {
   context: RuleContext;
   config: Config;
@@ -55,6 +75,17 @@ function check(params: {
     : [params.config.connections];
 
   for (const connection of connections) {
+    if (!isConnectionValid(connection)) {
+      if (!missingDatabaseUrlWarningLogged) {
+        console.warn(
+          `[eslint-plugin-slonik] databaseUrl is not configured. SQL validation is disabled. ` +
+            `Set the DATABASE_URL environment variable or configure databaseUrl in your ESLint config.`,
+        );
+        missingDatabaseUrlWarningLogged = true;
+      }
+      continue;
+    }
+
     for (const target of connection.targets) {
       checkConnection({ ...params, connection, target });
     }
