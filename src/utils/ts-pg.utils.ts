@@ -307,6 +307,34 @@ function isSlonikTimestampCall(expression: TSESTree.Expression): boolean {
 }
 
 /**
+ * Check if an expression is a Slonik sql.interval() call.
+ * 
+ * Slonik sql.interval() syntax:
+ *   sql.interval({ days: 1, hours: 2 })
+ *   sql.interval(myIntervalObject)
+ * 
+ * Returns true if this is a sql.interval() call.
+ */
+function isSlonikIntervalCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "interval") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
  * Result of extracting a Slonik sql.fragment expression.
  * Contains the SQL text and any nested expressions that need type checking.
  */
@@ -538,6 +566,28 @@ export function mapTemplateLiteralToQueryText(
     // Check for Slonik sql.timestamp() calls - these format a Date to a PostgreSQL timestamptz literal
     if (isSlonikTimestampCall(expression)) {
       const placeholder = `$${++$idx}::timestamptz`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
+    }
+
+    // Check for Slonik sql.interval() calls - these format an interval object to a PostgreSQL interval literal
+    if (isSlonikIntervalCall(expression)) {
+      const placeholder = `$${++$idx}::interval`;
       $queryText += placeholder;
 
       sourcemaps.push({

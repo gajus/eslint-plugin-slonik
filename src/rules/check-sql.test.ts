@@ -1843,6 +1843,46 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.interval", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.interval() in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(interval: { days?: number; hours?: number }) {
+            sql\`SELECT * FROM all_types WHERE interval_column = \${sql.interval(interval)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.interval() with inline object",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM all_types WHERE interval_column = \${sql.interval({ days: 1, hours: 2 })}\`
+        `,
+      },
+      {
+        name: "sql.interval() in arithmetic expression",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(interval: { days?: number }) {
+            sql\`SELECT * FROM caregiver WHERE created_at > NOW() - \${sql.interval(interval)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.interval() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, interval: { hours?: number; minutes?: number }) {
+            sql\`UPDATE all_types SET interval_column = \${sql.interval(interval)} WHERE id = \${id}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {
