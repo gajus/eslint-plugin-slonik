@@ -251,6 +251,34 @@ function isSlonikJoinCall(expression: TSESTree.Expression): boolean {
 }
 
 /**
+ * Check if an expression is a Slonik sql.date() call.
+ * 
+ * Slonik sql.date() syntax:
+ *   sql.date(new Date())
+ *   sql.date(myDateVariable)
+ * 
+ * Returns true if this is a sql.date() call.
+ */
+function isSlonikDateCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = expression.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  if (callee.property.type !== "Identifier" || callee.property.name !== "date") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(callee.object);
+  return objectName === "sql";
+}
+
+/**
  * Result of extracting a Slonik sql.fragment expression.
  * Contains the SQL text and any nested expressions that need type checking.
  */
@@ -455,6 +483,28 @@ export function mapTemplateLiteralToQueryText(
     // Check for Slonik sql.join() calls - skip validation as content is determined at runtime
     if (isSlonikJoinCall(expression)) {
       return E.right(null);
+    }
+
+    // Check for Slonik sql.date() calls - these format a Date to a PostgreSQL date literal
+    if (isSlonikDateCall(expression)) {
+      const placeholder = `$${++$idx}::date`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
     }
 
     // Check for Slonik sql.unnest() calls - these have explicit column type hints

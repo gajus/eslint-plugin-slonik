@@ -863,3 +863,126 @@ describe("Slonik sql.join Detection", () => {
     });
   });
 });
+
+// Re-create the sql.date detection logic for testing
+function isSlonikDateCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callExpr = expression as TSESTree.CallExpression;
+  const callee = callExpr.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  const memberExpr = callee as TSESTree.MemberExpression;
+
+  if (memberExpr.property.type !== "Identifier" ||
+      (memberExpr.property as TSESTree.Identifier).name !== "date") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(memberExpr.object);
+  return objectName === "sql";
+}
+
+// Helper to create mock sql.date() call expressions
+function createMockDateCallExpression(objectName: string): TSESTree.CallExpression {
+  return {
+    type: "CallExpression",
+    callee: {
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: objectName,
+        range: [0, 0],
+        loc: {} as any,
+      },
+      property: {
+        type: "Identifier",
+        name: "date",
+        range: [0, 0],
+        loc: {} as any,
+      },
+      computed: false,
+      optional: false,
+      range: [0, 0],
+      loc: {} as any,
+    },
+    arguments: [
+      {
+        type: "NewExpression",
+        callee: {
+          type: "Identifier",
+          name: "Date",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.NewExpression,
+    ],
+    optional: false,
+    range: [0, 0],
+    loc: {} as any,
+  } as unknown as TSESTree.CallExpression;
+}
+
+describe("Slonik sql.date Detection", () => {
+  describe("isSlonikDateCall", () => {
+    it("should detect sql.date() calls", () => {
+      const expr = createMockDateCallExpression("sql");
+      expect(isSlonikDateCall(expr)).toBe(true);
+    });
+
+    it("should return false for non-sql objects", () => {
+      const expr = createMockDateCallExpression("other");
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+
+    it("should return false for other sql methods", () => {
+      const expr = createMockCallExpression("sql", "array", "int4");
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.identifier()", () => {
+      const expr = createMockIdentifierCallExpression("sql", ["column"]);
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.join()", () => {
+      const expr = createMockJoinCallExpression("sql");
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-call expressions", () => {
+      const expr = {
+        type: "Identifier",
+        name: "foo",
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.Identifier;
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-member-expression callees", () => {
+      const expr = {
+        type: "CallExpression",
+        callee: {
+          type: "Identifier",
+          name: "date",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        optional: false,
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.CallExpression;
+      expect(isSlonikDateCall(expr)).toBe(false);
+    });
+  });
+});

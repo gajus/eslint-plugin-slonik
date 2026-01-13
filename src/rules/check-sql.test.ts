@@ -1745,6 +1745,55 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.date", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.date() in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(date: Date) {
+            sql\`SELECT * FROM test_date_column WHERE date_col = \${sql.date(date)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.date() with new Date()",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM test_date_column WHERE date_col = \${sql.date(new Date())}\`
+        `,
+      },
+      {
+        name: "sql.date() in INSERT statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function insert(date: Date) {
+            sql\`INSERT INTO test_date_column (date_col, date_array, instant_arr, time_arr, local_date_time_arr) VALUES (\${sql.date(date)}, '{}', '{}', '{}', '{}')\`
+          }
+        `,
+      },
+      {
+        name: "sql.date() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, date: Date) {
+            sql\`UPDATE test_date_column SET date_col = \${sql.date(date)} WHERE id = \${id}\`
+          }
+        `,
+      },
+      {
+        name: "sql.date() with comparison operators",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(startDate: Date, endDate: Date) {
+            sql\`SELECT * FROM test_date_column WHERE date_col >= \${sql.date(startDate)} AND date_col <= \${sql.date(endDate)}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {
