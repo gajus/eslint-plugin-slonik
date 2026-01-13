@@ -79,7 +79,7 @@ export default [
 | `sql.interval({...})` | ✅ Full | Extracts type → `$1::interval` |
 | `sql.json(value)` | ✅ Full | Extracts type → `$1::json` |
 | `sql.jsonb(value)` | ✅ Full | Extracts type → `$1::jsonb` |
-| `sql.literalValue(value)` | ✅ Full | Extracts type → `$1` |
+| `sql.literalValue(value)` | ✅ Full | Embeds as literal → `''` |
 | `sql.uuid(str)` | ✅ Full | Extracts type → `$1::uuid` |
 | `sql.binary(buffer)` | ✅ Full | Extracts type → `$1::bytea` |
 | `sql.join([...], glue)` | ✅ Skip | Skipped (runtime content) |
@@ -136,7 +136,7 @@ sql.type(z.object({ id: z.number() }))`
 sql.type(z.object({ result: z.string() }))`
   SELECT ${sql.literalValue('hello')} AS result
 `;
-// → Validates: SELECT $1 AS result
+// → Validates: SELECT '' AS result
 
 // sql.uuid for UUID values
 sql.type(z.object({ id: z.number() }))`

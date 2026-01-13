@@ -791,9 +791,10 @@ export function mapTemplateLiteralToQueryText(
       continue;
     }
 
-    // Check for Slonik sql.literalValue() calls - these insert a value as a SQL literal
+    // Check for Slonik sql.literalValue() calls - these insert a value directly as a SQL literal
+    // We use an empty string since the actual value is embedded directly in SQL at runtime
     if (isSlonikLiteralValueCall(expression)) {
-      const placeholder = `$${++$idx}`;
+      const placeholder = `''`;
       $queryText += placeholder;
 
       sourcemaps.push({

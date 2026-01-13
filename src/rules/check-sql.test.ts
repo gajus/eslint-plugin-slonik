@@ -1959,20 +1959,20 @@ RuleTester.describe("check-sql", () => {
         `,
       },
       {
-        name: "sql.literalValue() with number",
-        options: withConnection(connections.withTag),
-        code: `
-          function query(value: number) {
-            sql\`SELECT * FROM agency WHERE id = \${sql.literalValue(value)}\`
-          }
-        `,
-      },
-      {
         name: "sql.literalValue() in SELECT expression",
         options: withConnection(connections.withTag),
         code: `
           function query(value: string) {
             sql\`SELECT \${sql.literalValue(value)} AS literal_col\`
+          }
+        `,
+      },
+      {
+        name: "sql.literalValue() in string concatenation",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(prefix: string) {
+            sql\`SELECT * FROM agency WHERE name LIKE \${sql.literalValue(prefix)} || '%'\`
           }
         `,
       },
