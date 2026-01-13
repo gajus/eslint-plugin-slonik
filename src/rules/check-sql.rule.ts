@@ -123,7 +123,7 @@ function reportCheck(params: {
   typeParameter: TSESTree.TSTypeParameterInstantiation | undefined;
   baseNode: TSESTree.BaseNode;
 }) {
-  const { context, tag, connection, target, projectDir, typeParameter, baseNode } = params;
+  const { context, tag, connection, target, projectDir } = params;
 
   if (fatalError !== undefined) {
     const hint = isInEditorEnv()
