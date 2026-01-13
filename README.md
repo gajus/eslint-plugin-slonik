@@ -184,7 +184,7 @@ pnpm add -D eslint-plugin-slonik libpg-query
 ### 2. Create your SQL tag with type aliases
 
 ```ts
-// src/db/sql.ts
+// src/slonik.ts
 import { createSqlTag } from "slonik";
 import { z } from "zod";
 
@@ -231,8 +231,7 @@ export default tseslint.config(
 ### 4. Write validated queries
 
 ```ts
-import { sql } from "./db/sql";
-import { pool } from "./db/pool";
+import { pool, sql } from "./slonik";
 
 // ✅ Valid - query matches schema
 const users = await pool.many(
