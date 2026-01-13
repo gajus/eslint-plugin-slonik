@@ -167,10 +167,10 @@ function getMemberExpressionObjectName(node: TSESTree.Expression): string | null
 }
 
 /**
- * Check if an expression is a Slonik sql.identifier() call.
- * Returns true if this is a sql.identifier() call (regardless of whether arguments are static or dynamic).
+ * Check if an expression is a Slonik sql.methodName() call.
+ * This is a generic helper for detecting sql.date(), sql.json(), sql.uuid(), etc.
  */
-function isSlonikIdentifierCall(expression: TSESTree.Expression): boolean {
+function isSlonikMethodCall(expression: TSESTree.Expression, methodName: string): boolean {
   if (expression.type !== "CallExpression") {
     return false;
   }
@@ -181,7 +181,7 @@ function isSlonikIdentifierCall(expression: TSESTree.Expression): boolean {
     return false;
   }
 
-  if (callee.property.type !== "Identifier" || callee.property.name !== "identifier") {
+  if (callee.property.type !== "Identifier" || callee.property.name !== methodName) {
     return false;
   }
 
@@ -252,257 +252,6 @@ function extractSlonikIdentifier(expression: TSESTree.Expression): string | null
   return null;
 }
 
-/**
- * Check if an expression is a Slonik sql.join() call.
- * These should be skipped as they join multiple fragments at runtime.
- * 
- * Slonik sql.join() syntax:
- *   sql.join([sql.fragment`a = 1`, sql.fragment`b = 2`], sql.fragment` AND `)
- * 
- * Returns true if this is a sql.join() call.
- */
-function isSlonikJoinCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "join") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.date() call.
- * 
- * Slonik sql.date() syntax:
- *   sql.date(new Date())
- *   sql.date(myDateVariable)
- * 
- * Returns true if this is a sql.date() call.
- */
-function isSlonikDateCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "date") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.timestamp() call.
- * 
- * Slonik sql.timestamp() syntax:
- *   sql.timestamp(new Date())
- *   sql.timestamp(myDateVariable)
- * 
- * Returns true if this is a sql.timestamp() call.
- */
-function isSlonikTimestampCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "timestamp") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.interval() call.
- * 
- * Slonik sql.interval() syntax:
- *   sql.interval({ days: 1, hours: 2 })
- *   sql.interval(myIntervalObject)
- * 
- * Returns true if this is a sql.interval() call.
- */
-function isSlonikIntervalCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "interval") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.json() call.
- * 
- * Slonik sql.json() syntax:
- *   sql.json({ key: 'value' })
- *   sql.json(myObject)
- * 
- * Returns true if this is a sql.json() call.
- */
-function isSlonikJsonCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "json") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.jsonb() call.
- * 
- * Slonik sql.jsonb() syntax:
- *   sql.jsonb({ key: 'value' })
- *   sql.jsonb(myObject)
- * 
- * Returns true if this is a sql.jsonb() call.
- */
-function isSlonikJsonbCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "jsonb") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.literalValue() call.
- * 
- * Slonik sql.literalValue() syntax:
- *   sql.literalValue('some text')
- *   sql.literalValue(123)
- * 
- * Returns true if this is a sql.literalValue() call.
- */
-function isSlonikLiteralValueCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "literalValue") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.uuid() call.
- * 
- * Slonik sql.uuid() syntax:
- *   sql.uuid('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
- *   sql.uuid(myUuidVariable)
- * 
- * Returns true if this is a sql.uuid() call.
- */
-function isSlonikUuidCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "uuid") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
-
-/**
- * Check if an expression is a Slonik sql.binary() call.
- * 
- * Slonik sql.binary() syntax:
- *   sql.binary(Buffer.from('data'))
- *   sql.binary(myBuffer)
- * 
- * Returns true if this is a sql.binary() call.
- */
-function isSlonikBinaryCall(expression: TSESTree.Expression): boolean {
-  if (expression.type !== "CallExpression") {
-    return false;
-  }
-
-  const callee = expression.callee;
-
-  if (callee.type !== "MemberExpression") {
-    return false;
-  }
-
-  if (callee.property.type !== "Identifier" || callee.property.name !== "binary") {
-    return false;
-  }
-
-  const objectName = getMemberExpressionObjectName(callee.object);
-  return objectName === "sql";
-}
 
 /**
  * Result of extracting a Slonik sql.fragment expression.
@@ -709,17 +458,17 @@ export function mapTemplateLiteralToQueryText(
 
     // If it's a sql.identifier() call but we couldn't extract static identifier parts,
     // it means it has dynamic arguments - skip validation for the entire query
-    if (isSlonikIdentifierCall(expression)) {
+    if (isSlonikMethodCall(expression, "identifier")) {
       return E.right(null);
     }
 
     // Check for Slonik sql.join() calls - skip validation as content is determined at runtime
-    if (isSlonikJoinCall(expression)) {
+    if (isSlonikMethodCall(expression, "join")) {
       return E.right(null);
     }
 
     // Check for Slonik sql.date() calls - these format a Date to a PostgreSQL date literal
-    if (isSlonikDateCall(expression)) {
+    if (isSlonikMethodCall(expression, "date")) {
       const placeholder = `$${++$idx}::date`;
       $queryText += placeholder;
 
@@ -741,7 +490,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.timestamp() calls - these format a Date to a PostgreSQL timestamptz literal
-    if (isSlonikTimestampCall(expression)) {
+    if (isSlonikMethodCall(expression, "timestamp")) {
       const placeholder = `$${++$idx}::timestamptz`;
       $queryText += placeholder;
 
@@ -763,7 +512,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.interval() calls - these format an interval object to a PostgreSQL interval literal
-    if (isSlonikIntervalCall(expression)) {
+    if (isSlonikMethodCall(expression, "interval")) {
       const placeholder = `$${++$idx}::interval`;
       $queryText += placeholder;
 
@@ -785,7 +534,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.json() calls - these serialize an object to a PostgreSQL json value
-    if (isSlonikJsonCall(expression)) {
+    if (isSlonikMethodCall(expression, "json")) {
       const placeholder = `$${++$idx}::json`;
       $queryText += placeholder;
 
@@ -807,7 +556,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.jsonb() calls - these serialize an object to a PostgreSQL jsonb value
-    if (isSlonikJsonbCall(expression)) {
+    if (isSlonikMethodCall(expression, "jsonb")) {
       const placeholder = `$${++$idx}::jsonb`;
       $queryText += placeholder;
 
@@ -830,7 +579,7 @@ export function mapTemplateLiteralToQueryText(
 
     // Check for Slonik sql.literalValue() calls - these insert a value directly as a SQL literal
     // We use an empty string since the actual value is embedded directly in SQL at runtime
-    if (isSlonikLiteralValueCall(expression)) {
+    if (isSlonikMethodCall(expression, "literalValue")) {
       const placeholder = `''`;
       $queryText += placeholder;
 
@@ -852,7 +601,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.uuid() calls - these format a string to a PostgreSQL uuid value
-    if (isSlonikUuidCall(expression)) {
+    if (isSlonikMethodCall(expression, "uuid")) {
       const placeholder = `$${++$idx}::uuid`;
       $queryText += placeholder;
 
@@ -874,7 +623,7 @@ export function mapTemplateLiteralToQueryText(
     }
 
     // Check for Slonik sql.binary() calls - these format a Buffer to a PostgreSQL bytea value
-    if (isSlonikBinaryCall(expression)) {
+    if (isSlonikMethodCall(expression, "binary")) {
       const placeholder = `$${++$idx}::bytea`;
       $queryText += placeholder;
 
