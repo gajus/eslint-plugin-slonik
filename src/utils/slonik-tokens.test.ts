@@ -1583,3 +1583,121 @@ describe("Slonik sql.literalValue Detection", () => {
     });
   });
 });
+
+// Re-create the sql.uuid detection logic for testing
+function isSlonikUuidCall(expression: TSESTree.Expression): boolean {
+  if (expression.type !== "CallExpression") {
+    return false;
+  }
+
+  const callExpr = expression as TSESTree.CallExpression;
+  const callee = callExpr.callee;
+
+  if (callee.type !== "MemberExpression") {
+    return false;
+  }
+
+  const memberExpr = callee as TSESTree.MemberExpression;
+
+  if (memberExpr.property.type !== "Identifier" ||
+      (memberExpr.property as TSESTree.Identifier).name !== "uuid") {
+    return false;
+  }
+
+  const objectName = getMemberExpressionObjectName(memberExpr.object);
+  return objectName === "sql";
+}
+
+// Helper to create mock sql.uuid() call expressions
+function createMockUuidCallExpression(objectName: string): TSESTree.CallExpression {
+  return {
+    type: "CallExpression",
+    callee: {
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: objectName,
+        range: [0, 0],
+        loc: {} as any,
+      },
+      property: {
+        type: "Identifier",
+        name: "uuid",
+        range: [0, 0],
+        loc: {} as any,
+      },
+      computed: false,
+      optional: false,
+      range: [0, 0],
+      loc: {} as any,
+    },
+    arguments: [
+      {
+        type: "Literal",
+        value: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        raw: "'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'",
+        range: [0, 0],
+        loc: {} as any,
+      } as TSESTree.Literal,
+    ],
+    optional: false,
+    range: [0, 0],
+    loc: {} as any,
+  } as unknown as TSESTree.CallExpression;
+}
+
+describe("Slonik sql.uuid Detection", () => {
+  describe("isSlonikUuidCall", () => {
+    it("should detect sql.uuid() calls", () => {
+      const expr = createMockUuidCallExpression("sql");
+      expect(isSlonikUuidCall(expr)).toBe(true);
+    });
+
+    it("should return false for non-sql objects", () => {
+      const expr = createMockUuidCallExpression("other");
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+
+    it("should return false for other sql methods", () => {
+      const expr = createMockCallExpression("sql", "array", "int4");
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.literalValue()", () => {
+      const expr = createMockLiteralValueCallExpression("sql");
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+
+    it("should return false for sql.json()", () => {
+      const expr = createMockJsonCallExpression("sql");
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-call expressions", () => {
+      const expr = {
+        type: "Identifier",
+        name: "foo",
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.Identifier;
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+
+    it("should return false for non-member-expression callees", () => {
+      const expr = {
+        type: "CallExpression",
+        callee: {
+          type: "Identifier",
+          name: "uuid",
+          range: [0, 0],
+          loc: {} as any,
+        },
+        arguments: [],
+        optional: false,
+        range: [0, 0],
+        loc: {} as any,
+      } as unknown as TSESTree.CallExpression;
+      expect(isSlonikUuidCall(expr)).toBe(false);
+    });
+  });
+});

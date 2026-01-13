@@ -1980,6 +1980,37 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.uuid", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.uuid() in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(id: string) {
+            sql\`SELECT * FROM all_types WHERE uuid_column = \${sql.uuid(id)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.uuid() with literal string",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM all_types WHERE uuid_column = \${sql.uuid('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')}\`
+        `,
+      },
+      {
+        name: "sql.uuid() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, uuid: string) {
+            sql\`UPDATE all_types SET uuid_column = \${sql.uuid(uuid)} WHERE id = \${id}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {
