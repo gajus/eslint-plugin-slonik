@@ -609,6 +609,16 @@ RuleTester.describe("check-sql", () => {
           }
         `,
       },
+      {
+        name: "literal const string with apostrophe (single quote) should be escaped",
+        options: withConnection(connections.withTag),
+        code: `
+          const heading = \`You've been matched!\`;
+          const subheading = "We think you'd be a great fit for this role.";
+          sql\`INSERT INTO agency (name) VALUES (\${heading})\`
+          sql\`INSERT INTO agency (name) VALUES (\${subheading})\`
+        `,
+      },
     ],
     invalid: [
       {

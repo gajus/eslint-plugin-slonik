@@ -1334,7 +1334,9 @@ function checkType(params: {
   }
 
   if (type.isStringLiteral()) {
-    return E.right({ kind: "literal", value: `'${type.value}'`, cast: "text" });
+    // Escape single quotes in the literal value for SQL (apostrophe -> double apostrophe)
+    const escapedValue = type.value.replace(/'/g, "''");
+    return E.right({ kind: "literal", value: `'${escapedValue}'`, cast: "text" });
   }
 
   if (type.isNumberLiteral()) {
