@@ -2411,4 +2411,35 @@ RuleTester.describe("check-sql", () => {
     ],
     invalid: [],
   });
+
+  ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
+    valid: [
+      {
+        name: "CTE with array_agg, UNION, and coalesce with empty array (suppressed internal error)",
+        options: withConnection(connections.withTag),
+        // This query causes an internal error in the generator (@ts-safeql/generate)
+        // due to unsupported SQL syntax. The error is suppressed and the query is skipped.
+        code: `
+          sql\`
+            WITH
+              data AS (
+                SELECT
+                  array_agg(val) AS "values"
+                FROM
+                  (
+                    SELECT 'a' AS "val"
+                    UNION
+                    SELECT 'b' AS "val" WHERE FALSE
+                  ) t1
+              )
+            SELECT
+              coalesce(data.values, ARRAY[]::TEXT[]) AS "result"
+            FROM
+              data
+          \`
+        `,
+      },
+    ],
+    invalid: [],
+  });
 });

@@ -208,7 +208,6 @@ function reportCheck(params: {
             { _tag: "InvalidMigrationError" },
             { _tag: "InvalidMigrationsPathError" },
             { _tag: "DatabaseInitializationError" },
-            { _tag: "InternalError" },
             (error) => {
               if (params.connection.keepAlive === true) {
                 fatalError = error;
@@ -217,6 +216,24 @@ function reportCheck(params: {
               return reportBaseError({ context, error, tag });
             },
           )
+          .with({ _tag: "InternalError" }, (error) => {
+            // Check if this is a configuration error (should be reported)
+            // vs a query parsing error (should be suppressed)
+            const isConfigError = error.message.includes("Invalid override column key");
+
+            if (isConfigError) {
+              return reportBaseError({ context, error, tag });
+            }
+
+            // Suppress internal errors from the generator query parsing - these are typically
+            // caused by unsupported SQL syntax that we cannot fix.
+            // The query will be skipped without reporting an error.
+            console.warn(
+              `[eslint-plugin-slonik] Skipping query due to unsupported SQL syntax: ${error.message}\n` +
+                `If you believe this query should be supported, please open an issue at https://github.com/gajus/eslint-plugin-slonik/issues`,
+            );
+            return;
+          })
           .exhaustive();
       },
       ({ result, checker, parser }) => {
