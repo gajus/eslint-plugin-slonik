@@ -1794,6 +1794,55 @@ RuleTester.describe("check-sql", () => {
     invalid: [],
   });
 
+  ruleTester.run("sql.timestamp", rules["check-sql"], {
+    valid: [
+      {
+        name: "sql.timestamp() in WHERE clause",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(timestamp: Date) {
+            sql\`SELECT * FROM caregiver WHERE created_at = \${sql.timestamp(timestamp)}\`
+          }
+        `,
+      },
+      {
+        name: "sql.timestamp() with new Date()",
+        options: withConnection(connections.withTag),
+        code: `
+          sql\`SELECT * FROM caregiver WHERE created_at = \${sql.timestamp(new Date())}\`
+        `,
+      },
+      {
+        name: "sql.timestamp() in INSERT statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function insert(timestamp: Date) {
+            sql\`INSERT INTO test_nullable_timestamptz (colname) VALUES (\${sql.timestamp(timestamp)})\`
+          }
+        `,
+      },
+      {
+        name: "sql.timestamp() in UPDATE statement",
+        options: withConnection(connections.withTag),
+        code: `
+          function update(id: number, timestamp: Date) {
+            sql\`UPDATE caregiver SET created_at = \${sql.timestamp(timestamp)} WHERE id = \${id}\`
+          }
+        `,
+      },
+      {
+        name: "sql.timestamp() with comparison operators",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(startTime: Date, endTime: Date) {
+            sql\`SELECT * FROM caregiver WHERE created_at >= \${sql.timestamp(startTime)} AND created_at <= \${sql.timestamp(endTime)}\`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
+
   ruleTester.run("CTE with array_agg and coalesce", rules["check-sql"], {
     valid: [
       {

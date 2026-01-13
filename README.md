@@ -75,9 +75,9 @@ export default [
 | `sql.identifier(['schema','table'])` | ✅ Full | Embeds → `"schema"."table"` |
 | `` sql.fragment`...` `` | ✅ Full | Embeds SQL content directly |
 | `sql.date(date)` | ✅ Full | Extracts type → `$1::date` |
+| `sql.timestamp(date)` | ✅ Full | Extracts type → `$1::timestamptz` |
 | `sql.join([...], glue)` | ✅ Skip | Skipped (runtime content) |
 | `sql.binary(buffer)` | ✅ Skip | Skipped |
-| `sql.timestamp(date)` | ✅ Skip | Skipped |
 | `sql.interval({...})` | ✅ Skip | Skipped |
 | `sql.json(value)` | ✅ Skip | Skipped |
 | `sql.jsonb(value)` | ✅ Skip | Skipped |
@@ -113,6 +113,12 @@ sql.type(z.object({ id: z.number() }))`
   SELECT id FROM events WHERE event_date = ${sql.date(myDate)}
 `;
 // → Validates: SELECT id FROM events WHERE event_date = $1::date
+
+// sql.timestamp for timestamp values
+sql.type(z.object({ id: z.number() }))`
+  SELECT id FROM events WHERE created_at = ${sql.timestamp(myTimestamp)}
+`;
+// → Validates: SELECT id FROM events WHERE created_at = $1::timestamptz
 ```
 
 **Graceful Skip** means the plugin recognizes Slonik tokens and skips validation for those expressions, preventing false positives:
