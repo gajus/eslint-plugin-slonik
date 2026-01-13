@@ -302,6 +302,48 @@ const typo = await pool.many(
 );
 ```
 
+## Disabling Validation for Specific Queries
+
+You can disable `check-sql` validation for individual queries by adding a `@check-sql-disable` comment inside the SQL template literal:
+
+### Block Comment Style
+
+```ts
+sql`/* @check-sql-disable */ SELECT * FROM ${sql.identifier([dynamicTable])}`
+```
+
+### Line Comment Style
+
+```ts
+sql`
+  -- @check-sql-disable
+  SELECT * FROM ${sql.identifier([dynamicTable])}
+`
+```
+
+### When to Use
+
+This is useful when you have:
+
+1. **Dynamic SQL that cannot be validated statically** — Complex dynamic queries where even Slonik tokens aren't enough
+2. **Queries with edge cases** — SQL syntax that the plugin doesn't support yet
+3. **Intentional invalid SQL for testing** — When you need to test error handling
+4. **Temporary workarounds** — While waiting for a plugin fix or improvement
+
+```ts
+// Example: Complex dynamic query that can't be validated
+function buildDynamicReport(columns: string[], table: string) {
+  return sql`
+    /* @check-sql-disable */
+    SELECT ${sql.join(columns.map(c => sql.identifier([c])), sql.fragment`, `)}
+    FROM ${sql.identifier([table])}
+  `;
+}
+```
+
+> [!NOTE]
+> The comment must be placed inside the template literal, not outside of it. ESLint's standard `eslint-disable` comments work on the JavaScript/TypeScript level, while `@check-sql-disable` works on the SQL level.
+
 ## Differences from @ts-safeql/eslint-plugin
 
 This plugin is specifically designed for Slonik and includes:

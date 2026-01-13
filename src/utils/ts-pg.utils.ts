@@ -14,6 +14,36 @@ import { TSUtils } from "./ts.utils";
 import { isLastQueryContextOneOf } from "./query-context";
 
 /**
+ * Regex pattern to detect the @check-sql-disable comment.
+ * Supports both block comments (/* @check-sql-disable *\/) and line comments (-- @check-sql-disable).
+ */
+const CHECK_SQL_DISABLE_PATTERN = /\/\*\s*@check-sql-disable\s*\*\/|--\s*@check-sql-disable\b/;
+
+/**
+ * Check if the SQL query contains a @check-sql-disable comment.
+ * When present, the check-sql rule should skip validation for this query.
+ * 
+ * Supported comment formats:
+ * - Block comment: /* @check-sql-disable *\/
+ * - Line comment: -- @check-sql-disable
+ * 
+ * @example
+ * ```ts
+ * // Block comment style
+ * sql`/* @check-sql-disable *\/ SELECT * FROM ${dynamicTable}`
+ * 
+ * // Line comment style  
+ * sql`
+ *   -- @check-sql-disable
+ *   SELECT * FROM ${dynamicTable}
+ * `
+ * ```
+ */
+export function hasCheckSqlDisableComment(queryText: string): boolean {
+  return CHECK_SQL_DISABLE_PATTERN.test(queryText);
+}
+
+/**
  * Slonik SQL token types that represent SQL fragments/builders.
  * These types cannot be converted to PostgreSQL placeholder types
  * because they represent dynamic SQL construction at runtime.
@@ -601,6 +631,13 @@ export function mapTemplateLiteralToQueryText(
   options: RuleOptionConnection,
   sourceCode: Readonly<TSESLint.SourceCode>,
 ) {
+  // Check if the query contains a @check-sql-disable comment
+  // If so, skip validation by returning null
+  const rawQueryText = quasi.quasis.map((q) => q.value.raw).join("");
+  if (hasCheckSqlDisableComment(rawQueryText)) {
+    return E.right(null);
+  }
+
   let $idx = 0;
   let $queryText = "";
   const sourcemaps: QuerySourceMapEntry[] = [];

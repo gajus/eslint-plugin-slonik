@@ -2072,4 +2072,75 @@ RuleTester.describe("check-sql", () => {
     ],
     invalid: [],
   });
+
+  ruleTester.run("@check-sql-disable comment", rules["check-sql"], {
+    valid: [
+      {
+        name: "block comment at the start of query",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(dynamicTable: string) {
+            sql\`/* @check-sql-disable */ SELECT * FROM \${sql.identifier([dynamicTable])}\`
+          }
+        `,
+      },
+      {
+        name: "block comment with extra whitespace",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(table: string) {
+            sql\`/*   @check-sql-disable   */ SELECT * FROM \${sql.identifier([table])}\`
+          }
+        `,
+      },
+      {
+        name: "line comment style",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(table: string) {
+            sql\`
+              -- @check-sql-disable
+              SELECT * FROM \${sql.identifier([table])}
+            \`
+          }
+        `,
+      },
+      {
+        name: "block comment in the middle of query",
+        options: withConnection(connections.withTag),
+        code: `
+          function query(col: string) {
+            sql\`
+              SELECT 
+                /* @check-sql-disable */
+                \${sql.identifier([col])}
+              FROM caregiver
+            \`
+          }
+        `,
+      },
+      {
+        name: "disable comment allows invalid SQL that would otherwise error",
+        options: withConnection(connections.withTag),
+        code: `
+          // This query has an invalid column but is skipped due to disable comment
+          sql\`/* @check-sql-disable */ SELECT nonexistent_column FROM caregiver\`
+        `,
+      },
+      {
+        name: "disable comment with sql.join (already skipped, but comment makes intent explicit)",
+        options: withConnection(connections.withTag),
+        code: `
+          import { FragmentSqlToken } from 'slonik';
+          function query(conditions: FragmentSqlToken[]) {
+            sql\`
+              /* @check-sql-disable */
+              SELECT * FROM caregiver WHERE \${sql.join(conditions, sql.fragment\` AND \`)}
+            \`
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  });
 });
