@@ -33,7 +33,7 @@ npm install libpg-query --save-dev
 ### ESLint Flat Config (eslint.config.js)
 
 ```js
-import slonik from "eslint-plugin-slonik/config";
+import { slonik } from "eslint-plugin-slonik";
 
 export default [
   // ... other configs
@@ -200,7 +200,7 @@ export const sql = createSqlTag({
 
 ```js
 // eslint.config.js
-import slonik from "eslint-plugin-slonik/config";
+import { slonik } from "eslint-plugin-slonik";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
