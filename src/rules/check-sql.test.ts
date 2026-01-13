@@ -185,11 +185,6 @@ RuleTester.describe("check-sql", () => {
       targets: [{ wrapper: "conn.query" }],
       keepAlive: false,
     },
-    withSkipTypeAnnotations: {
-      databaseUrl,
-      targets: [{ wrapper: "conn.query", skipTypeAnnotations: true }],
-      keepAlive: false,
-    },
     withGlobWrapper: {
       databaseUrl,
       targets: [{ wrapper: "conn.+(query|queryOne|queryOneOrNone)" }],
@@ -554,11 +549,6 @@ RuleTester.describe("check-sql", () => {
         `,
       },
       {
-        name: "select with skipTypeAnnotations",
-        options: withConnection(connections.withSkipTypeAnnotations),
-        code: "const result = conn.query(sql`SELECT id FROM agency`);",
-      },
-      {
         name: "insert into nullable column a nullable member expression value",
         options: withConnection(connections.withTag),
         code: `
@@ -812,17 +802,6 @@ RuleTester.describe("check-sql", () => {
           }
         `,
         errors: [{ messageId: "missingTypeAnnotations" }],
-      },
-      {
-        options: withConnection(connections.withSkipTypeAnnotations),
-        name: "invalid select with skipTypeAnnotations",
-        code: "const result = conn.query(sql`SELECT idd FROM agency`);",
-        errors: [
-          {
-            messageId: "invalidQuery",
-            data: { error: 'column "idd" does not exist' },
-          },
-        ],
       },
       {
         name: "insert into with wrong nullable value",

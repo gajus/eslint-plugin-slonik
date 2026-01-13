@@ -247,12 +247,6 @@ function reportCheck(params: {
           return;
         }
 
-        const shouldSkipTypeAnnotations = target.skipTypeAnnotations === true;
-
-        if (shouldSkipTypeAnnotations) {
-          return;
-        }
-
         const isMissingTypeAnnotations = typeParameter === undefined;
 
         if (isMissingTypeAnnotations) {

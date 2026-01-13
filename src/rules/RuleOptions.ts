@@ -24,10 +24,6 @@ const zBaseTarget = z.object({
    */
   fieldTransform: z.enum(["snake", "pascal", "camel", "screaming snake"]).optional(),
 
-  /**
-   * Whether or not to skip type annotation.
-   */
-  skipTypeAnnotations: z.boolean().optional(),
 });
 /**
  * A target that acts as a wrapper for the query. For example:

@@ -42,24 +42,23 @@ export default [
     overrides: {
       types: {
         // Map PostgreSQL types to Slonik token types
-        date: "DateSqlToken",
-        timestamp: "TimestampSqlToken",
-        interval: "IntervalSqlToken",
-        json: "JsonSqlToken",
-        jsonb: "JsonBinarySqlToken",
-        uuid: "UuidSqlToken",
-        "int4[]": 'ArraySqlToken<"int4">',
-        "text[]": 'ArraySqlToken<"text">',
-        "uuid[]": 'ArraySqlToken<"uuid">',
-        "numeric[]": 'ArraySqlToken<"numeric">',
-        "real[]": "VectorSqlToken",
+        date: 'DateSqlToken',
+        timestamp: 'TimestampSqlToken',
+        interval: 'IntervalSqlToken',
+        json: 'JsonSqlToken',
+        jsonb: 'JsonBinarySqlToken',
+        uuid: 'UuidSqlToken',
+        'int4[]': 'ArraySqlToken<"int4">',
+        'text[]': 'ArraySqlToken<"text">',
+        'uuid[]': 'ArraySqlToken<"uuid">',
+        'numeric[]': 'ArraySqlToken<"numeric">',
+        'real[]': 'VectorSqlToken',
       },
     },
     targets: [
       {
         // Match Slonik's typed query methods
-        tag: "sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)",
-        skipTypeAnnotations: true,
+        tag: 'sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)',
       },
     ],
   }),
@@ -131,14 +130,14 @@ When using Slonik, you'll want to map PostgreSQL types to Slonik's token types:
 overrides: {
   types: {
     // Date/Time types
-    date: "DateSqlToken",
-    timestamp: "TimestampSqlToken",
+    date: 'DateSqlToken',
+    timestamp: 'TimestampSqlToken',
     timestamptz: "TimestampSqlToken",
-    interval: "IntervalSqlToken",
+    interval: 'IntervalSqlToken',
 
     // JSON types
-    json: "JsonSqlToken",
-    jsonb: "JsonBinarySqlToken",
+    json: 'JsonSqlToken',
+    jsonb: 'JsonBinarySqlToken',
 
     // UUID
     uuid: "UuidSqlToken",
@@ -167,7 +166,6 @@ targets: [
   {
     // Matches: sql.type(...)``, sql.typeAlias(...)``, sql.unsafe``
     tag: "sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)",
-    skipTypeAnnotations: true,
   },
 ]
 ```
@@ -209,19 +207,18 @@ export default tseslint.config(
     databaseUrl: process.env.DATABASE_URL,
     overrides: {
       types: {
-        date: "DateSqlToken",
-        timestamp: "TimestampSqlToken",
-        json: "JsonSqlToken",
-        jsonb: "JsonBinarySqlToken",
-        uuid: "UuidSqlToken",
-        "int4[]": 'ArraySqlToken<"int4">',
-        "text[]": 'ArraySqlToken<"text">',
+        date: 'DateSqlToken',
+        timestamp: 'TimestampSqlToken',
+        json: 'JsonSqlToken',
+        jsonb: 'JsonBinarySqlToken',
+        uuid: 'UuidSqlToken',
+        'int4[]': 'ArraySqlToken<"int4">',
+        'text[]': 'ArraySqlToken<"text">',
       },
     },
     targets: [
       {
-        tag: "sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)",
-        skipTypeAnnotations: true,
+        tag: 'sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)',
       },
     ],
   })
