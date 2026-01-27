@@ -24,6 +24,12 @@ function defineWorker<T extends AnyFn<R>, R = unknown>(params: { name: string; t
   });
 }
 
+// Import batch worker types
+import type { BatchWorkerHandler } from "./check-sql-batch.worker";
+
 export const workers = {
   generateSync: defineWorker<CheckSQLWorkerHandler>({ name: "check-sql", timeout: 1000 * 60 * 1 }),
+  generateBatchSync: defineWorker<BatchWorkerHandler>({ name: "check-sql-batch", timeout: 1000 * 60 * 2 }),
 };
+
+export type { BatchWorkerParams, BatchWorkerResult, BatchQueryItem, BatchResultItem } from "./check-sql-batch.worker";

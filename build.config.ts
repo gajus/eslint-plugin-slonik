@@ -2,7 +2,7 @@ import { defineBuildConfig } from "unbuild";
 
 export default defineBuildConfig([
   {
-    entries: ["src/index", "src/workers/check-sql.worker.ts"],
+    entries: ["src/index", "src/workers/check-sql.worker.ts", "src/workers/check-sql-batch.worker.ts"],
     declaration: true,
     sourcemap: true,
     rollup: {
