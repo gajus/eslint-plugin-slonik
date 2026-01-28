@@ -2,7 +2,6 @@ import { InvalidConfigError, doesMatchPattern } from "@ts-safeql/shared";
 import {
   ESLintUtils,
   ParserServices,
-  ParserServicesWithTypeInformation,
   TSESLint,
   TSESTree,
 } from "@typescript-eslint/utils";
