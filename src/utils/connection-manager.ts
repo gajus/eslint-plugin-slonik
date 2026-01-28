@@ -79,6 +79,7 @@ function getOrCreateConnection(
           password: config.password,
           database: config.database,
           connect_timeout: Math.ceil(timeoutMs / 1_000),
+          max: 3,
           ...options?.postgresOptions,
         });
         connectionMap.set(databaseUrl, sql);
