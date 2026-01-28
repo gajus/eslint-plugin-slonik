@@ -166,17 +166,14 @@ function prepareQuery(params: {
 }): PreparedQuery {
   const { id, context, tag, connection, target, projectDir, baseNode, typeParameter } = params;
 
-  // Get parser services
-  if (!hasParserServicesWithTypeInformation(context.sourceCode.parserServices)) {
-    return {
-      id,
-      tag,
-      connection,
-      error: new InvalidConfigError("Parser services are not available"),
-    };
+  // Get parser services - silently skip if not available at all
+  const parserServices = context.sourceCode.parserServices;
+  if (!parserServices) {
+    return { id, skipped: true };
   }
 
-  const parser = context.sourceCode.parserServices;
+  // Cast to ParserServices - we'll handle missing program gracefully
+  const parser = parserServices as ParserServices;
 
   // Type checker may not be available (e.g., when using OXLint JS plugins)
   // In that case, we pass null and use untyped placeholders
