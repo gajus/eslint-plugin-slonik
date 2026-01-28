@@ -182,10 +182,10 @@ function prepareQuery(params: {
       connection,
       context.sourceCode,
     );
-  } catch {
-    // Silently skip if query text extraction fails
-    // (e.g., incompatible parser services in OXLint)
-    return { id, skipped: true };
+  } catch (error) {
+    console.error("[slonik/check-sql] DEBUG: Error in mapTemplateLiteralToQueryText:", error);
+    console.error("[slonik/check-sql] DEBUG: Query template:", context.sourceCode.getText(tag));
+    throw error;
   }
 
   if (E.isLeft(queryResult)) {
@@ -492,13 +492,7 @@ export default createRule({
       }));
 
       // Send batch to worker for parallel processing
-      let batchResult;
-      try {
-        batchResult = generateBatchSyncE({ queries: batchQueries });
-      } catch {
-        // Worker failed to start (e.g., SharedArrayBuffer not available in OXLint)
-        return;
-      }
+      const batchResult = generateBatchSyncE({ queries: batchQueries });
 
       if (E.isLeft(batchResult)) {
         // Batch processing failed entirely - report error for first query
@@ -554,18 +548,10 @@ export default createRule({
 
     return {
       TaggedTemplateExpression(tag) {
-        try {
-          check(tag);
-        } catch {
-          // Silently ignore errors to prevent crashing the host linter
-        }
+        check(tag);
       },
       "Program:exit"() {
-        try {
-          processBatch();
-        } catch {
-          // Silently ignore errors to prevent crashing the host linter
-        }
+        processBatch();
       },
     };
   },

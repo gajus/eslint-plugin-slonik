@@ -98,7 +98,7 @@ function createMockSqlArrayCall(typeHint: string): TSESTree.CallExpression {
         elements: [],
         range: [10, 12] as [number, number],
         loc: {} as any,
-      } as unknown as TSESTree.ArrayExpression,
+      } as TSESTree.ArrayExpression,
       {
         type: "Literal",
         value: typeHint,
@@ -148,7 +148,7 @@ function createMockSqlDateCall(): TSESTree.CallExpression {
         arguments: [],
         range: [9, 15] as [number, number],
         loc: {} as any,
-      } as unknown as TSESTree.NewExpression,
+      } as TSESTree.NewExpression,
     ],
     optional: false,
     range: [0, 16] as [number, number],
