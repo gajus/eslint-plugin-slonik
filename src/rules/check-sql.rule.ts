@@ -132,12 +132,6 @@ function isTagMemberValid(
   return false;
 }
 
-function hasParserServicesWithTypeInformation(
-  parser: Partial<ParserServices> | undefined,
-): parser is ParserServicesWithTypeInformation {
-  return parser !== undefined && parser.program !== null;
-}
-
 function getValidParentUntilDepth(node: TSESTree.Node, depth: number) {
   if (node.type === "CallExpression" && node.callee.type === "MemberExpression") {
     return node;
