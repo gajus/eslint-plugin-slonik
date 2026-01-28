@@ -178,16 +178,9 @@ function prepareQuery(params: {
 
   const parser = context.sourceCode.parserServices;
 
-  if (!parser.program) {
-    return {
-      id,
-      tag,
-      connection,
-      error: new InvalidConfigError("Type checker is not available"),
-    };
-  }
-
-  const checker = parser.program.getTypeChecker();
+  // Type checker may not be available (e.g., when using OXLint JS plugins)
+  // In that case, we pass null and use untyped placeholders
+  const checker = parser.program?.getTypeChecker() ?? null;
 
   // Extract query text
   let queryResult;

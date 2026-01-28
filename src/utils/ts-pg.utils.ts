@@ -376,7 +376,7 @@ function extractSlonikUnnestTypes(expression: TSESTree.Expression): string[] | n
 export function mapTemplateLiteralToQueryText(
   quasi: TSESTree.TemplateLiteral,
   parser: ParserServices,
-  checker: ts.TypeChecker,
+  checker: ts.TypeChecker | null,
   options: RuleOptionConnection,
   sourceCode: Readonly<TSESLint.SourceCode>,
 ) {
@@ -675,22 +675,28 @@ export function mapTemplateLiteralToQueryText(
     if (slonikFragment !== null) {
       // Process nested expressions within the fragment
       let fragmentSql = slonikFragment.sqlText;
-      
+
       for (let i = 0; i < slonikFragment.expressions.length; i++) {
         const nestedExpr = slonikFragment.expressions[i];
-        const nestedPgType = pipe(
-          mapExpressionToTsTypeString({ expression: nestedExpr, parser, checker }),
-          (params) => getPgTypeFromTsType({ ...params, checker, options }),
-        );
 
         let nestedPlaceholder: string;
-        if (E.isLeft(nestedPgType) || nestedPgType.right === null) {
-          // If we can't determine the type, use a simple placeholder
+        if (checker === null) {
+          // No type checker available - use untyped placeholder
           nestedPlaceholder = `$${++$idx}`;
-        } else if (nestedPgType.right.kind === "literal") {
-          nestedPlaceholder = nestedPgType.right.value;
         } else {
-          nestedPlaceholder = `$${++$idx}::${nestedPgType.right.cast}`;
+          const nestedPgType = pipe(
+            mapExpressionToTsTypeString({ expression: nestedExpr, parser, checker }),
+            (params) => getPgTypeFromTsType({ ...params, checker, options }),
+          );
+
+          if (E.isLeft(nestedPgType) || nestedPgType.right === null) {
+            // If we can't determine the type, use a simple placeholder
+            nestedPlaceholder = `$${++$idx}`;
+          } else if (nestedPgType.right.kind === "literal") {
+            nestedPlaceholder = nestedPgType.right.value;
+          } else {
+            nestedPlaceholder = `$${++$idx}::${nestedPgType.right.cast}`;
+          }
         }
 
         fragmentSql = fragmentSql.replace(`\${__FRAGMENT_EXPR_${i}__}`, nestedPlaceholder);
@@ -717,13 +723,39 @@ export function mapTemplateLiteralToQueryText(
 
     // Check if the expression is a Slonik SQL token type (nested query/fragment)
     // These represent dynamic SQL that cannot be analyzed statically, so skip validation
-    const tsNode = parser.esTreeNodeToTSNodeMap.get(expression);
-    if (tsNode) {
-      const expressionType = checker.getTypeAtLocation(tsNode);
-      const expressionTypeStr = checker.typeToString(expressionType);
-      if (isSlonikSqlTokenType(expressionTypeStr)) {
-        return E.right(null);
+    // Only perform this check if type checker is available
+    if (checker !== null) {
+      const tsNode = parser.esTreeNodeToTSNodeMap.get(expression);
+      if (tsNode) {
+        const expressionType = checker.getTypeAtLocation(tsNode);
+        const expressionTypeStr = checker.typeToString(expressionType);
+        if (isSlonikSqlTokenType(expressionTypeStr)) {
+          return E.right(null);
+        }
       }
+    }
+
+    // When type checker is not available, use untyped placeholder
+    // PostgreSQL can infer types from context in most cases
+    if (checker === null) {
+      const placeholder = `$${++$idx}`;
+      $queryText += placeholder;
+
+      sourcemaps.push({
+        original: {
+          start: expression.range[0] - quasi.range[0] - 2,
+          end: expression.range[1] - quasi.range[0],
+          text: sourceCode.text.slice(expression.range[0] - 2, expression.range[1] + 1),
+        },
+        generated: {
+          start: position,
+          end: position + placeholder.length,
+          text: placeholder,
+        },
+        offset: 0,
+      });
+
+      continue;
     }
 
     const pgType = pipe(mapExpressionToTsTypeString({ expression, parser, checker }), (params) =>
