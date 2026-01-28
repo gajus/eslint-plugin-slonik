@@ -33,36 +33,56 @@ npm install libpg-query --save-dev
 ### ESLint Flat Config (eslint.config.js)
 
 ```js
-import { slonik } from "eslint-plugin-slonik";
+import slonik from "eslint-plugin-slonik";
 
 export default [
   // ... other configs
-  slonik.configs.connections({
-    databaseUrl: process.env.DATABASE_URL,
-    overrides: {
-      types: {
-        // Map PostgreSQL types to Slonik token types
-        date: 'DateSqlToken',
-        timestamp: 'TimestampSqlToken',
-        interval: 'IntervalSqlToken',
-        json: 'JsonSqlToken',
-        jsonb: 'JsonBinarySqlToken',
-        uuid: 'UuidSqlToken',
-        'int4[]': 'ArraySqlToken<"int4">',
-        'text[]': 'ArraySqlToken<"text">',
-        'uuid[]': 'ArraySqlToken<"uuid">',
-        'numeric[]': 'ArraySqlToken<"numeric">',
-        'real[]': 'VectorSqlToken',
-      },
+  {
+    plugins: {
+      slonik,
     },
-    targets: [
-      {
-        // Match Slonik's typed query methods
-        tag: 'sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)',
-      },
-    ],
-  }),
+    rules: {
+      "slonik/check-sql": [
+        "error",
+        {
+          connections: {
+            // ...
+          },
+        },
+      ],
+    },
+  },
 ];
+```
+
+### Rule Options (JSON)
+
+```json
+{
+  "connections": {
+    "databaseUrl": "postgresql://user:password@localhost:5432/database",
+    "overrides": {
+      "types": {
+        "date": "DateSqlToken",
+        "timestamp": "TimestampSqlToken",
+        "interval": "IntervalSqlToken",
+        "json": "JsonSqlToken",
+        "jsonb": "JsonBinarySqlToken",
+        "uuid": "UuidSqlToken",
+        "int4[]": "ArraySqlToken<\"int4\">",
+        "text[]": "ArraySqlToken<\"text\">",
+        "uuid[]": "ArraySqlToken<\"uuid\">",
+        "numeric[]": "ArraySqlToken<\"numeric\">",
+        "real[]": "VectorSqlToken"
+      }
+    },
+    "targets": [
+      {
+        "tag": "sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)"
+      }
+    ]
+  }
+}
 ```
 
 ### Optional Database URL
@@ -251,30 +271,19 @@ export const sql = createSqlTag({
 
 ```js
 // eslint.config.js
-import { slonik } from "eslint-plugin-slonik";
+import slonik from "eslint-plugin-slonik";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   ...tseslint.configs.recommended,
-  slonik.configs.connections({
-    databaseUrl: process.env.DATABASE_URL,
-    overrides: {
-      types: {
-        date: 'DateSqlToken',
-        timestamp: 'TimestampSqlToken',
-        json: 'JsonSqlToken',
-        jsonb: 'JsonBinarySqlToken',
-        uuid: 'UuidSqlToken',
-        'int4[]': 'ArraySqlToken<"int4">',
-        'text[]': 'ArraySqlToken<"text">',
-      },
+  {
+    plugins: {
+      slonik,
     },
-    targets: [
-      {
-        tag: 'sql.+(type\\(*\\)|typeAlias\\(*\\)|unsafe)',
-      },
-    ],
-  })
+    rules: {
+      "slonik/check-sql": ["error", { connections: { /* ... */ } }],
+    },
+  }
 );
 ```
 
